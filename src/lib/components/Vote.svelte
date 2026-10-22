@@ -2,10 +2,15 @@
 	import { game } from '$lib/game.svelte';
 </script>
 
-<p class="text-green-600">
+<p class="muted text-center text-sm tracking-widest uppercase">
 	Runde {game.round} von {game.totalRounds} · {game.voter} stimmt ab
 </p>
-<h1 class="mt-4 text-3xl font-bold">Wer würde eher {game.question}?</h1>
+<h1 class="mt-4 text-center text-3xl font-extrabold">
+	Wer würde eher <span
+		class="bg-linear-to-r from-violet-300 to-cyan-300 bg-clip-text text-transparent"
+		>{game.question}</span
+	>?
+</h1>
 
 <div class="mt-8 grid gap-3">
 	{#each game.players as player, i (player)}

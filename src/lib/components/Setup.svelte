@@ -12,48 +12,61 @@
 	}
 </script>
 
-<h1 class="text-4xl font-bold">Wer würde eher?</h1>
-<p class="mt-2 text-green-600">
-	Alle spielen an einem Gerät. Tragt eure Namen ein, danach wird das Gerät reihum weitergegeben.
-</p>
-
-<form class="mt-8 flex gap-2" onsubmit={add}>
-	<input
-		class="min-w-0 flex-1 rounded border-2 border-green-500 bg-black px-3 py-3 text-lg text-green-400 placeholder:text-green-800"
-		placeholder="Name"
-		maxlength="20"
-		aria-label="Name des Spielers"
-		bind:value={name}
-	/>
-	<button class="btn" type="submit" disabled={game.players.length >= MAX_PLAYERS}>Hinzufügen</button
+<div class="text-center">
+	<h1
+		class="bg-linear-to-r from-violet-300 via-blue-300 to-cyan-300 bg-clip-text text-5xl font-extrabold text-transparent"
 	>
-</form>
-{#if error}
-	<p class="mt-2 text-red-400" role="alert">{error}</p>
-{/if}
+		Wer würde eher?
+	</h1>
+	<p class="muted mt-3">
+		Alle spielen an einem Gerät. Tragt eure Namen ein, danach wird das Gerät reihum weitergegeben.
+	</p>
+</div>
 
-<ul class="mt-6 space-y-2">
-	{#each game.players as player, i (player)}
-		<li class="flex items-center justify-between rounded border border-green-700 px-3 py-2">
-			<span class="text-lg">{player}</span>
-			<button
-				class="cursor-pointer text-green-600 hover:text-red-400"
-				aria-label="{player} entfernen"
-				onclick={() => game.removePlayer(i)}>✕</button
-			>
-		</li>
-	{/each}
-</ul>
-<p class="mt-2 text-sm text-green-700">
-	{game.players.length} / {MAX_PLAYERS} Spieler (mindestens {MIN_PLAYERS})
-</p>
+<section class="card mt-8 p-5">
+	<form class="flex gap-2" onsubmit={add}>
+		<input
+			class="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/25 px-4 py-3 text-lg text-white placeholder:text-indigo-300/50 focus:border-cyan-300 focus:outline-none"
+			placeholder="Name"
+			maxlength="20"
+			aria-label="Name des Spielers"
+			bind:value={name}
+		/>
+		<button class="btn" type="submit" disabled={game.players.length >= MAX_PLAYERS}>
+			Hinzufügen
+		</button>
+	</form>
+	{#if error}
+		<p class="mt-2 text-rose-300" role="alert">{error}</p>
+	{/if}
 
-<fieldset class="mt-8">
-	<legend class="mb-2 text-green-600">Anzahl Runden</legend>
+	{#if game.players.length}
+		<ul class="mt-4 flex flex-wrap gap-2">
+			{#each game.players as player, i (player)}
+				<li
+					class="flex items-center gap-2 rounded-full bg-linear-to-r from-violet-500/30 to-cyan-400/30 py-1.5 pr-2 pl-4 ring-1 ring-white/15"
+				>
+					<span class="font-semibold">{player}</span>
+					<button
+						class="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-black/20 text-sm hover:bg-rose-500"
+						aria-label="{player} entfernen"
+						onclick={() => game.removePlayer(i)}>✕</button
+					>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+	<p class="muted mt-3 text-sm">
+		{game.players.length} / {MAX_PLAYERS} Spieler (mindestens {MIN_PLAYERS})
+	</p>
+</section>
+
+<fieldset class="mt-6">
+	<legend class="muted mb-2">Anzahl Runden</legend>
 	<div class="flex gap-2">
 		{#each ROUND_OPTIONS.filter((n) => n <= questions.length) as option (option)}
 			<label
-				class="flex-1 cursor-pointer rounded border-2 border-green-700 py-2 text-center has-checked:border-green-400 has-checked:bg-green-500 has-checked:text-black"
+				class="flex-1 cursor-pointer rounded-xl border border-white/15 bg-white/8 py-3 text-center text-lg font-semibold transition hover:bg-white/15 has-checked:border-transparent has-checked:bg-cyan-300 has-checked:text-slate-950 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-cyan-300"
 			>
 				<input
 					class="sr-only"

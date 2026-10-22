@@ -7,7 +7,7 @@
 	import Final from '$lib/components/Final.svelte';
 </script>
 
-<main class="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-4 py-8 text-green-400">
+<main class="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-4 py-8">
 	{#if game.phase === 'setup'}
 		<Setup />
 	{:else if game.phase === 'pass'}

@@ -5,23 +5,25 @@
 	const maxVotes = $derived(Math.max(1, ...game.tally));
 </script>
 
-<p class="text-green-600">Runde {game.round} von {game.totalRounds}</p>
-<h1 class="mt-4 text-2xl font-bold">Wer würde eher {game.question}?</h1>
+<p class="muted text-center text-sm tracking-widest uppercase">
+	Runde {game.round} von {game.totalRounds}
+</p>
+<h1 class="mt-4 text-center text-2xl font-extrabold">Wer würde eher {game.question}?</h1>
 
-<p class="mt-6 text-xl text-green-300">
+<p class="mt-6 text-center text-2xl font-extrabold text-cyan-300">
 	{game.roundWinners.length > 1 ? 'Gleichstand' : 'Das war'}: {game.roundWinners.join(' & ')}
 </p>
 
-<ul class="mt-6 space-y-3">
+<ul class="card mt-6 space-y-4 p-5">
 	{#each game.players as player, i (player)}
 		<li>
-			<div class="flex justify-between">
+			<div class="flex justify-between font-semibold">
 				<span>{player}</span>
 				<span>{game.tally[i]}</span>
 			</div>
-			<div class="mt-1 h-3 rounded bg-green-950">
+			<div class="mt-1 h-3 rounded-full bg-black/25">
 				<div
-					class="h-3 rounded bg-green-500 transition-all"
+					class="h-3 rounded-full bg-linear-to-r from-violet-500 to-cyan-400 transition-all"
 					style:width="{(game.tally[i] / maxVotes) * 100}%"
 				></div>
 			</div>
@@ -29,7 +31,7 @@
 	{/each}
 </ul>
 
-<details class="mt-6 text-green-600">
+<details class="muted mt-6">
 	<summary class="cursor-pointer">Wer hat wen gewählt?</summary>
 	<ul class="mt-2 space-y-1">
 		{#each game.votes as target, voter (voter)}

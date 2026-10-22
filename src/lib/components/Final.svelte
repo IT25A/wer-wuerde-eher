@@ -9,19 +9,25 @@
 	);
 </script>
 
-<h1 class="text-4xl font-bold">Endergebnis</h1>
-<p class="mt-4 text-xl text-green-300">
-	Am ehesten: {winners.join(' & ')}
-</p>
-<p class="mt-1 text-sm text-green-600">
-	Wer die meisten Runden "gewonnen" hat, wurde am häufigsten gewählt.
-</p>
+<div class="text-center">
+	<h1 class="text-4xl font-extrabold">Endergebnis</h1>
+	<p class="mt-4 text-2xl font-extrabold text-cyan-300">
+		Am ehesten: {winners.join(' & ')}
+	</p>
+	<p class="muted mt-1 text-sm">
+		Wer die meisten Runden "gewonnen" hat, wurde am häufigsten gewählt.
+	</p>
+</div>
 
 <ol class="mt-6 space-y-2">
 	{#each game.ranking as entry, i (entry.name)}
-		<li class="flex items-center justify-between rounded border border-green-700 px-3 py-2">
-			<span class="text-lg">{i + 1}. {entry.name}</span>
-			<span class="text-sm text-green-600">
+		<li
+			class="card flex items-center justify-between px-4 py-3 {i === 0
+				? 'ring-2 ring-cyan-300/70'
+				: ''}"
+		>
+			<span class="text-lg font-semibold">{i + 1}. {entry.name}</span>
+			<span class="muted text-sm">
 				{entry.roundsWon}
 				{entry.roundsWon === 1 ? 'Runde' : 'Runden'} · {entry.votesReceived}
 				{entry.votesReceived === 1 ? 'Stimme' : 'Stimmen'}
