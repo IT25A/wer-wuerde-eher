@@ -6,9 +6,13 @@
 <svelte:head>
 	<link
 		rel="stylesheet"
-		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=cycle,indeterminate_question_box,public"
+		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=cycle,indeterminate_question_box,language,public,settings"
 	/>
 </svelte:head>
+<div id="options">
+	<span class="material-symbols-outlined"> language </span>
+	<span class="material-symbols-outlined"> settings </span>
+</div>
 <main>
 	<h1>Wer würde eher?</h1>
 	<div id="button-container">
@@ -18,7 +22,7 @@
 		<button type="button" id="hotseat" onclick={() => goto(resolve('/hotseat'))}>
 			Hot Seat <span class="material-symbols-outlined"> cycle </span>
 		</button>
-		<button type="button" id="q_only" disabled>
+		<button type="button" id="q_only" onclick={() => goto(resolve('/nurFragen'))}>
 			Nur Fragen <span class="material-symbols-outlined"> indeterminate_question_box </span>
 		</button>
 	</div>
@@ -72,7 +76,7 @@
 			flex-direction: row;
 			align-items: center;
 			justify-content: space-between;
-			transition: all 0.2s ease-out;
+			transition: all 0.1s ease-out;
 			border: 2px solid hsla(0, 0%, 100%, 0.7);
 			text-shadow: 0 0 10px hsla(0, 0%, 100%, 0.3);
 		}
@@ -80,9 +84,15 @@
 			background-color: hsl(22, 100%, 50%);
 			transform: scale(1.02);
 		}
+		button:active {
+			transform: scale(0.98);
+		}
 		button:disabled {
 			filter: grayscale(100%);
 			cursor: not-allowed;
+		}
+		button:active:disabled {
+			animation: wiggleX 0.3s ease-out;
 		}
 	}
 	.material-symbols-outlined {
@@ -93,5 +103,57 @@
 			'wght' 400,
 			'GRAD' 0,
 			'opsz' 24;
+	}
+	#options {
+		position: absolute;
+		top: 0.5rem;
+		right: 0.5rem;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		color: gray;
+		z-index: 1000;
+		span {
+			font-size: 2rem;
+			cursor: not-allowed;
+			transition: all 0.1s ease-out;
+		}
+		span:hover {
+			color: hsl(0, 0%, 80%);
+			transform: scale(1.05);
+		}
+		span:active {
+			transform: scale(0.95);
+			animation: wiggleX 0.3s ease-out;
+		}
+	}
+
+	@keyframes wiggleX {
+		0% {
+			transform: translateX(0);
+		}
+		15% {
+			transform: translateX(-0.7rem);
+		}
+		30% {
+			transform: translateX(0.7rem);
+		}
+		45% {
+			transform: translateX(-0.5rem);
+		}
+		60% {
+			transform: translateX(0.4rem);
+		}
+		75% {
+			transform: translateX(-0.3rem);
+		}
+		90% {
+			transform: translateX(0.2rem);
+		}
+		100% {
+			transform: translateX(0);
+		}
 	}
 </style>
