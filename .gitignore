@@ -8,6 +8,9 @@ node_modules
 /.svelte-kit
 /build
 
+# Alter Scaffolding-Ordner (Überbleibsel von "npx sv create my-app")
+my-app
+
 # OS
 .DS_Store
 Thumbs.db

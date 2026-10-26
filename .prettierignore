@@ -5,5 +5,16 @@ yarn.lock
 bun.lock
 bun.lockb
 
-# Miscellaneous
+# Devin-Konfiguration und generierte Dateien (sollen nicht formatiert werden)
+.devin/
+.svelte-kit/
+
+# Alter Scaffolding-Ordner, der nicht mehr zum eigentlichen Projekt gehört
+my-app/
+
+# Lokale Skill-/Agenten-Dokumentation.
+# prettier-plugin-svelte crasht auf diff-Markierungen ("+++") in Svelte-Codeblöcken.
+.github/
+
+# Static assets werden nicht von Prettier formatiert
 /static/

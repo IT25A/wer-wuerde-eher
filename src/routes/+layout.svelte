@@ -7,15 +7,3 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 {@render children()}
-
-<style>
-	:global(body) {
-		margin: 0;
-		font-family: consolas, monaco, monospace;
-		background-color: black;
-		color: green;
-	}
-	:global(h1) {
-		font-size: 3rem;
-	}
-</style>

@@ -1,1 +1,159 @@
 @import 'tailwindcss';
+
+@theme {
+	--color-roulette-bg: #070707;
+	--color-roulette-bg-light: #0a0a0a;
+	--color-roulette-felt: #0f3d2e;
+	--color-roulette-felt-dark: #081f17;
+	--color-roulette-bordeaux: #5c0a1e;
+	--color-roulette-bordeaux-light: #7a0f2b;
+	--color-roulette-gold: #c9a227;
+	--color-roulette-gold-light: #e6c86b;
+	--color-roulette-cream: #f5e6c8;
+}
+
+body {
+	background-color: var(--color-roulette-bg);
+	color: var(--color-roulette-cream);
+	min-height: 100vh;
+	font-family:
+		system-ui,
+		-apple-system,
+		BlinkMacSystemFont,
+		'Segoe UI',
+		Roboto,
+		sans-serif;
+}
+
+/*
+	Globale Komponenten-Klassen für die Spiel-Ansichten.
+	Die Hot-Seat-Komponenten verwenden .card, .btn, .btn-primary und .muted.
+	Hier sind sie an das Casino-Farbschema der Landing Page angeglichen.
+*/
+@layer components {
+	.game-stage {
+		min-height: 100vh;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		background-color: var(--color-roulette-bg);
+		background-image:
+			radial-gradient(ellipse at 50% 10%, rgba(15, 61, 46, 0.6) 0%, transparent 55%),
+			radial-gradient(circle at 85% 80%, rgba(92, 10, 30, 0.25) 0%, transparent 35%),
+			radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+		background-size:
+			100% 100%,
+			100% 100%,
+			24px 24px;
+		color: var(--color-roulette-cream);
+		padding: 1rem;
+		overflow: hidden;
+	}
+
+	.card {
+		background: linear-gradient(
+			180deg,
+			var(--color-roulette-felt) 0%,
+			var(--color-roulette-felt-dark) 100%
+		);
+		border: 2px solid var(--color-roulette-gold);
+		border-radius: 1.5rem;
+		padding: 1.5rem;
+		box-shadow:
+			0 0 50px rgba(0, 0, 0, 0.5),
+			inset 0 1px 0 rgba(255, 255, 255, 0.06);
+	}
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		width: 100%;
+		padding: 1rem 1.5rem;
+		border-radius: 0.75rem;
+		font-weight: 700;
+		font-size: 1rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		text-decoration: none;
+		transition:
+			transform 0.15s ease,
+			box-shadow 0.15s ease,
+			background-color 0.15s ease;
+		border: 2px solid var(--color-roulette-gold);
+		background: linear-gradient(180deg, #17664c, var(--color-roulette-felt));
+		color: var(--color-roulette-cream);
+		box-shadow:
+			0 4px 14px rgba(0, 0, 0, 0.4),
+			inset 0 1px 0 rgba(255, 255, 255, 0.1);
+		cursor: pointer;
+	}
+
+	.btn:hover {
+		transform: translateY(-2px) scale(1.02);
+		box-shadow:
+			0 8px 24px rgba(201, 162, 39, 0.25),
+			inset 0 1px 0 rgba(255, 255, 255, 0.15);
+	}
+
+	.btn:disabled {
+		background: #2a2a2a;
+		color: #888;
+		border-color: #555;
+		opacity: 0.7;
+		cursor: not-allowed;
+		transform: none;
+		box-shadow: none;
+	}
+
+	.btn-primary {
+		background: linear-gradient(
+			180deg,
+			var(--color-roulette-bordeaux-light),
+			var(--color-roulette-bordeaux)
+		);
+	}
+
+	.btn-primary:hover {
+		box-shadow:
+			0 8px 24px rgba(201, 162, 39, 0.3),
+			inset 0 1px 0 rgba(255, 255, 255, 0.15);
+	}
+
+	.muted {
+		color: var(--color-roulette-gold-light);
+	}
+}
+
+@media (min-width: 640px) {
+	.game-stage {
+		padding: 2rem;
+	}
+
+	.card {
+		padding: 2rem;
+		border-radius: 2rem;
+	}
+
+	.btn {
+		padding: 1.25rem 2rem;
+		font-size: 1.125rem;
+	}
+}
+
+@media (min-width: 1024px) {
+	.game-stage {
+		padding: 3rem;
+	}
+
+	.card {
+		padding: 2.5rem;
+	}
+
+	.btn {
+		font-size: 1.25rem;
+	}
+}
