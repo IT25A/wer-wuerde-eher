@@ -11,20 +11,22 @@
 <h1 class="mt-4 text-center text-2xl font-extrabold">Wer würde eher {game.question}?</h1>
 
 <p class="mt-6 text-center text-2xl font-extrabold text-cyan-300">
-	{game.roundWinners.length > 1 ? 'Gleichstand' : 'Das war'}: {game.roundWinners.join(' & ')}
+	{game.roundWinners.length > 1 ? 'Gleichstand' : 'Das war'}: {game.roundWinners
+		.map((p) => p.name)
+		.join(' & ')}
 </p>
 
 <ul class="card mt-6 space-y-4 p-5">
-	{#each game.players as player, i (player)}
+	{#each game.players as p (p.name)}
 		<li>
 			<div class="flex justify-between font-semibold">
-				<span>{player}</span>
-				<span>{game.tally[i]}</span>
+				<span>{p.name}</span>
+				<span>{p.votes}</span>
 			</div>
 			<div class="mt-1 h-3 rounded-full bg-black/25">
 				<div
 					class="h-3 rounded-full bg-linear-to-r from-violet-500 to-cyan-400 transition-all"
-					style:width="{(game.tally[i] / maxVotes) * 100}%"
+					style:width="{(p.votes / maxVotes) * 100}%"
 				></div>
 			</div>
 		</li>
@@ -34,8 +36,8 @@
 <details class="muted mt-6">
 	<summary class="cursor-pointer">Wer hat wen gewählt?</summary>
 	<ul class="mt-2 space-y-1">
-		{#each game.votes as target, voter (voter)}
-			<li>{game.players[voter]} → {game.players[target]}</li>
+		{#each game.players as p (p.name)}
+			<li>{p.name} → {p.voted?.name || 'Niemand'}</li>
 		{/each}
 	</ul>
 </details>

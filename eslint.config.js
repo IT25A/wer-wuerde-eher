@@ -36,6 +36,15 @@ export default defineConfig(
 	{
 		// Override or add rule settings here, such as:
 		// 'svelte/button-has-type': 'error'
-		rules: {}
+		rules: {
+			"no-unused-vars": [
+                "warn",
+                {
+                    varsIgnorePattern: "^_",
+                    argsIgnorePattern: "^_",
+                    caughtErrorsIgnorePattern: "^_"
+                }
+            ]
+		}
 	}
 );

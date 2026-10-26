@@ -42,15 +42,15 @@
 
 	{#if game.players.length}
 		<ul class="mt-4 flex flex-wrap gap-2">
-			{#each game.players as player, i (player)}
+			{#each game.players as p (p.name)}
 				<li
 					class="flex items-center gap-2 rounded-full bg-linear-to-r from-violet-500/30 to-cyan-400/30 py-1.5 pr-2 pl-4 ring-1 ring-white/15"
 				>
-					<span class="font-semibold">{player}</span>
+					<span class="font-semibold">{p.name}</span>
 					<button
 						class="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-black/20 text-sm hover:bg-rose-500"
-						aria-label="{player} entfernen"
-						onclick={() => game.removePlayer(i)}>✕</button
+						aria-label="{p} entfernen"
+						onclick={() => game.removePlayer(p)}>✕</button
 					>
 				</li>
 			{/each}

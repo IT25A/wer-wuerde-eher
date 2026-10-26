@@ -3,7 +3,7 @@
 </script>
 
 <p class="muted text-center text-sm tracking-widest uppercase">
-	Runde {game.round} von {game.totalRounds} · {game.voter} stimmt ab
+	Runde {game.round} von {game.totalRounds} · {game.voter.name} stimmt ab
 </p>
 <h1 class="mt-4 text-center text-3xl font-extrabold">
 	Wer würde eher <span
@@ -13,7 +13,7 @@
 </h1>
 
 <div class="mt-8 grid gap-3">
-	{#each game.players as player, i (player)}
-		<button class="btn" onclick={() => game.vote(i)}>{player}</button>
+	{#each game.players as p (p.name)}
+		<button class="btn" onclick={() => game.vote(p)}>{p.name}</button>
 	{/each}
 </div>
