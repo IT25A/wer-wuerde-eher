@@ -271,6 +271,9 @@
 		Goldener Schein, damit es mit dem Hintergrund harmoniert.
 	*/
 	.logo {
+		/* Tailwind-Preflight setzt img auf display: block, daher zentriert text-align nicht. */
+		display: block;
+		margin-inline: auto;
 		width: min(90%, 520px);
 		height: auto;
 		filter: drop-shadow(0 0 24px rgba(201, 162, 39, 0.35));
