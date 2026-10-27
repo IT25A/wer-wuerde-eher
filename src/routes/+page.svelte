@@ -28,12 +28,6 @@
 	// Für die Startseite eignet sich besonders "challenging" (zeigt auf den Spieler)
 	// oder "normal" (freundliches Willkommen).
 	const MASKOT = 'challenging';
-
-	/**
-	 * Text in der Sprechblase des Moderators.
-	 * Hier könnt ihr einen Claim, ein Zitat oder einen Aufforderungstext eintragen.
-	 */
-	const SPEECH = 'Wer traut sich?';
 </script>
 
 <svelte:head>
@@ -50,14 +44,6 @@
 	dekorative Casino-Elementen zusammen.
 -->
 <main class="landing">
-	<!--
-		Team-Badge: Dezente, aber stilvolle Kennzeichnung oben links.
-		Füllt Leerraum und gibt der Seite einen professionellen Rahmen.
-	-->
-	<div class="team-badge" aria-label="Entwickelt von Gruppe G an der HWR Berlin">
-		<span class="team-badge-dot"></span>
-		Gruppe G · HWR Berlin
-	</div>
 
 	<div class="content">
 		<!--
@@ -132,13 +118,6 @@
 				Auf Desktop nimmt diese Spalte die rechte Seite ein.
 			-->
 			<div class="host-column">
-				<!--
-					Sprechblase: Füllt die Szene und gibt dem Moderator Persönlichkeit.
-					Text ist über die SPEECH-Variable steuerbar.
-				-->
-				<div class="speech-bubble" aria-hidden="true">
-					<p>{SPEECH}</p>
-				</div>
 
 				<!--
 					Moderator-Karte: Eingerahmtes Portrait, das wie ein Gastgeber
