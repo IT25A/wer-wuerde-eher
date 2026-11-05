@@ -38,17 +38,11 @@
 	#q_only {
 		background: linear-gradient(30deg, hsl(30, 100%, 40%), hsl(00, 100%, 45%));
 	}
-	:global(body) {
-		margin: 0;
-		padding: 0;
-		font-family: 'Bebas Neue', cursive;
-		background: linear-gradient(0deg, hsl(220, 85%, 3%), hsl(240, 85%, 7%));
-	}
 
 	h1 {
 		font-size: 6rem;
 		margin: 0;
-		text-shadow: 0 0 4rem hsla(0, 0%, 100%, 0.5);
+		text-shadow: 0 0 4em	 hsla(0, 0%, 100%, 0.5);
 	}
 	main {
 		display: flex;

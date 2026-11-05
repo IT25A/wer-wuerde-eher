@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { game, MAX_PLAYERS, MIN_PLAYERS, ROUND_OPTIONS } from '$lib/game.svelte';
 	import { questions } from '$lib/questions';
-
+	import PlayerChip from '$lib/components/PlayerChip.svelte';
 	let name = $state('');
 	let error = $state('');
-
 	function add(event: SubmitEvent) {
 		event.preventDefault();
 		error = game.addPlayer(name) ?? '';
@@ -12,64 +11,51 @@
 	}
 </script>
 
-<div class="text-center">
-	<h1
-		class="bg-linear-to-r from-violet-300 via-blue-300 to-cyan-300 bg-clip-text text-5xl font-extrabold text-transparent"
-	>
-		Wer würde eher?
-	</h1>
-	<p class="muted mt-3">
+<div class="setup-head">
+	<h1 class="title">Wer würde eher?</h1>
+	<p class="subtitle">
 		Alle spielen an einem Gerät. Tragt eure Namen ein, danach wird das Gerät reihum weitergegeben.
 	</p>
 </div>
 
-<section class="card mt-8 p-5">
-	<form class="flex gap-2" onsubmit={add}>
+<section id="setup-players">
+	<form id="add-player" onsubmit={add}>
 		<input
-			class="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/25 px-4 py-3 text-lg text-white placeholder:text-indigo-300/50 focus:border-cyan-300 focus:outline-none"
+			class="glow-box"
 			placeholder="Name"
 			maxlength="20"
 			aria-label="Name des Spielers"
 			bind:value={name}
 		/>
-		<button class="btn" type="submit" disabled={game.players.length >= MAX_PLAYERS}>
+		<button class="glow-box" id="add-player-btn" type="submit" disabled={game.players.length >= MAX_PLAYERS}>
 			Hinzufügen
 		</button>
 	</form>
 	{#if error}
-		<p class="mt-2 text-rose-300" role="alert">{error}</p>
+		<p class="error" role="alert">{error}</p>
 	{/if}
 
 	{#if game.players.length}
-		<ul class="mt-4 flex flex-wrap gap-2">
+		<ul id="player-list">
 			{#each game.players as p (p.name)}
-				<li
-					class="flex items-center gap-2 rounded-full bg-linear-to-r from-violet-500/30 to-cyan-400/30 py-1.5 pr-2 pl-4 ring-1 ring-white/15"
-				>
-					<span class="font-semibold">{p.name}</span>
-					<button
-						class="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-black/20 text-sm hover:bg-rose-500"
-						aria-label="{p} entfernen"
-						onclick={() => game.removePlayer(p)}>✕</button
-					>
+				<li>
+					<PlayerChip player={p} allowRemove={true} />
 				</li>
 			{/each}
 		</ul>
 	{/if}
-	<p class="muted mt-3 text-sm">
+	<p class="muted setup-player-count">
 		{game.players.length} / {MAX_PLAYERS} Spieler (mindestens {MIN_PLAYERS})
 	</p>
 </section>
 
-<fieldset class="mt-6">
-	<legend class="muted mb-2">Anzahl Runden</legend>
-	<div class="flex gap-2">
-		{#each ROUND_OPTIONS.filter((n) => n <= questions.length) as option (option)}
-			<label
-				class="flex-1 cursor-pointer rounded-xl border border-white/15 bg-white/8 py-3 text-center text-lg font-semibold transition hover:bg-white/15 has-checked:border-transparent has-checked:bg-cyan-300 has-checked:text-slate-950 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-cyan-300"
-			>
+<fieldset id="rounds">
+	<legend>Anzahl Runden</legend>
+
+	{#each ROUND_OPTIONS.filter((n) => n <= questions.length) as option (option)}
+			<label class="round-option">
 				<input
-					class="sr-only"
+					class="round-input"
 					type="radio"
 					name="rounds"
 					value={option}
@@ -78,9 +64,106 @@
 				{option}
 			</label>
 		{/each}
-	</div>
+			<!-- #TODO: Add custom round option -->
+
 </fieldset>
 
-<button class="btn btn-primary mt-8 w-full" disabled={!game.canStart} onclick={() => game.start()}>
+<button
+	class="start-btn"
+	disabled={!game.canStart}
+	onclick={() => game.start()}
+>
 	Spiel starten
 </button>
+
+<style>
+	p{
+		text-align: center;
+	}
+	.subtitle{
+		color: var(--color20);
+	}
+	#setup-players{
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		width: 100%;
+		margin: 1rem 0;
+	}
+	#add-player{
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		gap: 1rem;
+		width: 100%;
+	}
+	#add-player button, input{
+		font-size: 1.25rem;
+		padding: .25rem .5rem;
+	}
+	#add-player-btn{
+		background: var(--color10);
+	}
+
+	#player-list{
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: .5rem;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	/* .player-chip{
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: .5rem;
+		background: var(--color20dark);
+		text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+		padding: .25rem .5rem;
+		border-radius: .25rem;
+	} */
+
+	#rounds{
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		margin: 0;
+		border-radius: .5rem;
+	}
+	.round-option{
+		display: inline-flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		aspect-ratio: 1/1;
+		height: 3rem;
+		font-size: 1.5rem;
+		padding: .25rem;
+		border-radius: 10%;
+		margin: .25rem;
+		background: var(--color70light);
+		cursor: pointer;
+		gap: .5rem;
+		transition: background .1s ease, transform .1s ease-out;
+	}
+	.round-option:has(input:checked){
+		background: var(--color20dark);
+	}
+	.round-option:hover{
+		background: var(--color20);
+		transform: scale(1.05);
+	}
+	.round-option:active{
+		transform: scale(.98);
+	}
+	.round-option input{
+		opacity: 0;
+		position: absolute;
+		width: 0;
+		height: 0;
+	}
+</style>

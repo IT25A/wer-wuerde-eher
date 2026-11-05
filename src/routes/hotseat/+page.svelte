@@ -7,7 +7,7 @@
 	import Final from '$lib/components/Final.svelte';
 </script>
 
-<main class="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-4 py-8">
+<main class="hotseat-game-shell glow-box">
 	{#if game.phase === 'setup'}
 		<Setup />
 	{:else if game.phase === 'pass'}
@@ -20,3 +20,15 @@
 		<Final />
 	{/if}
 </main>
+
+<style>
+	main{
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		width: min(80%, 550px);
+		padding: 1.5rem;
+		border-radius: 1rem;
+	}
+</style>

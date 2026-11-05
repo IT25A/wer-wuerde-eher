@@ -2,35 +2,32 @@
 	import { game } from '$lib/game.svelte';
 </script>
 
-<div class="flex flex-col items-center text-center">
-	<div class="flex items-center gap-1.5" aria-hidden="true">
+<div class="pass-device-content">
+	<div class="pass-round-progress" aria-hidden="true">
 		{#each { length: game.totalRounds } as _, i (i)}
 			<span
-				class="h-1.5 w-6 rounded-full transition-colors {i < game.round
-					? 'bg-cyan-300'
-					: 'bg-white/15'}"
+				class="pass-round-segment {i < game.round
+					? 'pass-round-segment-complete'
+					: 'pass-round-segment-pending'}"
 			></span>
 		{/each}
 	</div>
-	<p class="muted mt-2 text-sm tracking-widest uppercase">
+	<p class="muted pass-round-label">
 		Runde {game.round} von {game.totalRounds}
 	</p>
 
-	<h1 class="muted mt-10 text-lg">Gib das Gerät an</h1>
+	<h1 class="muted pass-device-heading">Gib das Gerät an</h1>
 
-	<div
-		class="mt-6 flex h-28 w-28 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-cyan-400 text-6xl font-extrabold text-white shadow-2xl ring-4 shadow-violet-900/50 ring-white/20"
-		aria-hidden="true"
-	>
+	<div class="pass-device-avatar" aria-hidden="true">
 		{game.voter.name.charAt(0).toUpperCase()}
 	</div>
-	<p class="mt-5 text-4xl font-extrabold wrap-break-word">{game.voter.name}</p>
+	<p class="pass-device-player-name">{game.voter.name}</p>
 
-	<p class="card muted my-10 max-w-xs px-4 py-3 text-sm">
+	<p class="card muted pass-device-note">
 		Die anderen schauen bitte kurz weg. Die Frage und die Abstimmung sind geheim.
 	</p>
 
-	<button class="btn btn-primary w-full" onclick={() => game.reveal()}>
+	<button class="btn btn-primary pass-device-action" onclick={() => game.reveal()}>
 		Ich bin {game.voter.name}
 	</button>
 </div>

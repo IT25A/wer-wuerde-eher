@@ -23,6 +23,7 @@ export type Player = {
 	votesTotal: number;
 	votes: number;
 	voted: Player | null;
+	color?: string;
 }
 
 export class Game {
@@ -61,20 +62,20 @@ export class Game {
 		if (this.players.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
 			return 'Diesen Namen gibt es schon.';
 		}
-		const player:Player = {name, roundsWon: 0, votesTotal: 0, votes: 0, voted: null};
+		const player: Player = { name, roundsWon: 0, votesTotal: 0, votes: 0, voted: null };
 		this.players.push(player);
 		return null;
 	}
 
-removePlayer(index: number | Player) {
-    const i = typeof index === "number"
-        ? index
-        : this.players.indexOf(index);
+	removePlayer(index: number | Player) {
+		const i = typeof index === "number"
+			? index
+			: this.players.indexOf(index);
 
-    if (i !== -1) {
-        this.players.splice(i, 1);
-    }
-}
+		if (i !== -1) {
+			this.players.splice(i, 1);
+		}
+	}
 
 	start() {
 		if (!this.canStart) return;
