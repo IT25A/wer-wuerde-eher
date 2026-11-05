@@ -1,3 +1,4 @@
+import { assignRandomColor } from './playerColors';
 import { questions } from './questions';
 
 // Ablauf eines Spiels (Hot Seat, ein Gerät wird reihum weitergegeben):
@@ -63,6 +64,7 @@ export class Game {
 			return 'Diesen Namen gibt es schon.';
 		}
 		const player: Player = { name, roundsWon: 0, votesTotal: 0, votes: 0, voted: null };
+		assignRandomColor(player);
 		this.players.push(player);
 		return null;
 	}
