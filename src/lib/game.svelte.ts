@@ -1,3 +1,5 @@
+import { goto } from '$app/navigation';
+import { resolve } from '$app/paths';
 import { assignRandomColor } from './playerColors';
 import { questions } from './questions';
 
@@ -138,10 +140,11 @@ export class Game {
 		this.start();
 	}
 
-	/** Zurück zum Anfang, alles löschen. */
+	/** Zurück zur Startseite; der Spielstand wird dabei gelöscht. */
 	reset() {
 		this.players = [];
 		this.phase = 'setup';
+		goto(resolve('/'));
 	}
 }
 
