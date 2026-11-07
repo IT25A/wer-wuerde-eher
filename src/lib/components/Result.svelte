@@ -42,6 +42,7 @@
 <button style="font-size: 1.5em" onclick={() => game.next()}>
 	{isLast ? 'Endergebnis anzeigen' : 'Nächste Runde'}
 </button>
+
 <style>
 .result-question {
 		font-size: 2.5em;

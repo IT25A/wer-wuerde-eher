@@ -6,8 +6,8 @@ import { questions } from './questions';
 export type Phase = 'setup' | 'pass' | 'vote' | 'result' | 'final';
 
 export const MIN_PLAYERS = 2;
-export const MAX_PLAYERS = 10;
-export const ROUND_OPTIONS = [5, 10, 15];
+export const MAX_PLAYERS = 20;
+export const ROUND_OPTIONS = [5, 10, 15, 20];
 
 function shuffle<T>(items: T[]): T[] {
 	const copy = [...items];
