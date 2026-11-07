@@ -68,8 +68,10 @@
 
 </fieldset>
 
+<br>
 <button
 	class="start-btn"
+	id="start-btn"
 	disabled={!game.canStart}
 	onclick={() => game.start()}
 >
@@ -103,7 +105,7 @@
 		padding: .25rem .5rem;
 	}
 	#add-player-btn{
-		background: var(--color10);
+		background: var(--color30);
 	}
 
 	#player-list{
@@ -165,5 +167,11 @@
 		position: absolute;
 		width: 0;
 		height: 0;
+	}
+
+	#start-btn{
+		font-size: 1.5rem;
+		padding: .25rem 2rem;
+		background: var(--color30);
 	}
 </style>

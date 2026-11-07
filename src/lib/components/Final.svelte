@@ -33,8 +33,23 @@
 </ol>
 
 <div class="final-actions">
-	<button class="btn btn-primary final-play-again" onclick={() => game.playAgain()}
+	<button class="btn btn-primary final-play-again" onclick={() => game.playAgain()} id="play-again-btn"
 		>Nochmal mit denselben Spielern</button
 	>
-	<button class="btn final-new-game" onclick={() => game.reset()}>Neues Spiel</button>
+	<button class="btn final-new-game" onclick={() => game.reset()} id="new-game-btn">Neues Spiel</button>
 </div>
+
+<style>
+	.final-actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 1rem;
+	}
+
+	#play-again-btn,
+	#new-game-btn {
+		font-size: 1rem;
+		padding: .35rem 1rem;
+	}
+</style>

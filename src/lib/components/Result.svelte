@@ -30,16 +30,18 @@
 	{/each}
 </ul>
 
+<br>
+
 <details class="voting-details">
 	<summary>Wer hat wen gewählt?</summary>
 	<ul class="player-votes">
 		{#each game.players.toSorted((a, b) => (b.voted?.votes ?? 0) - (a.voted?.votes ?? 0)) as p (p.name)}
-			<li>{p.name} → {p.voted?.name || 'Niemand'}</li>
+			<li id = player-list>{p.name} → {p.voted?.name || 'Niemand'}</li>
 		{/each}
 	</ul>
 </details>
 
-<button style="font-size: 1.5em" onclick={() => game.next()}>
+<button style="font-size: 1.5em" onclick={() => game.next()} id="next-round-btn">
 	{isLast ? 'Endergebnis anzeigen' : 'Nächste Runde'}
 </button>
 
@@ -93,5 +95,21 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+
+	#player-list{
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: .5rem;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		color: var(--color30);
+	}
+
+	#next-round-btn{
+		font-size: 1.5rem;
+		padding: .25rem 2rem;
 	}
 </style>
