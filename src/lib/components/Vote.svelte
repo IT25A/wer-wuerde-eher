@@ -9,7 +9,7 @@
 	Wer würde eher <span
 		class="bg-linear-to-r from-violet-300 to-cyan-300 bg-clip-text text-transparent"
 		>{game.question}</span
-	>?
+	>
 </h1>
 
 <div class="mt-8 grid gap-3">

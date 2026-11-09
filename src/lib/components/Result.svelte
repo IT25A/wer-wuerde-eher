@@ -8,7 +8,7 @@
 <p class="muted text-center text-sm tracking-widest uppercase">
 	Runde {game.round} von {game.totalRounds}
 </p>
-<h1 class="mt-4 text-center text-2xl font-extrabold">Wer würde eher {game.question}?</h1>
+<h1 class="mt-4 text-center text-2xl font-extrabold">Wer würde eher {game.question}</h1>
 
 <p class="mt-6 text-center text-2xl font-extrabold text-cyan-300">
 	{game.roundWinners.length > 1 ? 'Gleichstand' : 'Das war'}: {game.roundWinners
