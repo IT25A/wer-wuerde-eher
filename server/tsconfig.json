@@ -1,0 +1,25 @@
+/*
+Wofür: Bestehende tsconfig.json ist auf SvelteKit ausgerichtet.
+Unser Backend ist aber eine eigenständige Node.js-Anwendung. Deshalb trennen wir die Konfigurationen.
+
+Insbesondere:
+- strict: true: TypeScript soll streng auf Typfehler achten.
+- target: ES2022: Wir verwenden moderne JavaScript-Funktionen.
+- types: ["node"]: Wir stellen Node.js-Typdefinitionen bereit.
+- noEmit: true: TypeScript soll bei der Prüfung keine zusätzlichen JavaScript-Dateien erzeugen.
+*/
+
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "types": ["node"],
+        "noEmit": true
+    },
+    "include": ["src/**/*.ts"]
+}
+
