@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { game, MAX_PLAYERS, MIN_PLAYERS, ROUND_OPTIONS } from '$lib/game.svelte';
-
-	type Category = { id: number; name: string; description: string | null; questionCount: number };
+	
+	type Category = { id: number; name: string; description: string | null; questionCount: number }
 	let categories = $state<Category[]>([]);
 	let categoriesError = $state('');
 
