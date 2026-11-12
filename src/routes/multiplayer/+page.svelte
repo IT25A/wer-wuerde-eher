@@ -34,6 +34,7 @@
 	let currentPlayer = $derived(game?.players.find((player) => player.name === playerName));
 	let canAdvance = $derived(Boolean(currentPlayer?.isAdmin));
 
+	$inspect(game);
 	function connect(onConnected?: () => void) {
 		if (socket && socket.readyState === 1) {
 			onConnected?.();
@@ -186,6 +187,7 @@
 		</section>
 	{/if}
 </main>
+<button onclick={() => console.log($state.snapshot(game))}>Log Game</button>
 
 <style>
 	:global(body) {

@@ -1,13 +1,13 @@
 class Player {
     // Name soll unique sein -> Public ID
     // Private ID gilt als Verfikiation, damit kein Spieler sich als ein anderer Spieler ausgeben kann.
-	name: string;
+    name: string;
     readonly privateId: string;
-	roundsWon: number;
-	totalVotes: number;
-	roundVotes: number;
-	voted: Player | null;
-	color?: string;
+    roundsWon: number;
+    totalVotes: number;
+    roundVotes: number;
+    voted: Player | null;
+    color?: string;
     isAdmin: boolean;
     constructor(name: string, isAdmin: boolean = false, privateId: string) {
         this.name = name.slice(0, 20).trim();
@@ -36,26 +36,33 @@ export class Game {
     }
     nextPhase(calledById: string) {
         const calledBy = this.players.get(calledById);
-        if(!calledBy || !calledBy.isAdmin) {
+        if (!calledBy || !calledBy.isAdmin) {
             throw new Error("Only the admin can advance the phase.");
         }
-        else{
-            switch(this.phase) {
+        else {
+            switch (this.phase) {
                 case "setup":
                     this.phase = "vote";
                     break;
                 case "vote":
-                    this.players.forEach((p) => {
-                        p.roundVotes = 0;
-                    });
                     this.currentRound++;
+                    this.players.forEach((p) => {
+                        p.totalVotes += p.roundVotes;
+
+                    });
                     this.phase = "result";
                     break;
                 case "result":
                     this.players.forEach((p) => {
-                        p.totalVotes += p.roundVotes;
+                        p.roundVotes = 0;
+                        p.voted = null;
                     });
-                    this.phase = "final";
+                    if (this.currentRound >= this.totalRounds) {
+                        this.phase = "final";
+                    }
+                    else {
+                        this.phase = "vote";
+                    }
                     break;
                 case "final":
                     this.players.forEach((p) => {
@@ -71,14 +78,14 @@ export class Game {
         }
     }
     playerJoins(name: string, isAdmin: boolean = false, privateId: string) {
-        if(this.phase !== "setup") {
+        if (this.phase !== "setup") {
             throw new Error("Cannot join a game that has already started.");
         }
-        if(this.players.size >= this.maxPlayers) {
+        if (this.players.size >= this.maxPlayers) {
             throw new Error("Game is full.");
         }
         const player = new Player(name, isAdmin, privateId);
-        if(this.playersByName.has(name)) {
+        if (this.playersByName.has(name)) {
             throw new Error("Player name already taken.");
         }
         this.players.set(privateId, player);
@@ -86,37 +93,38 @@ export class Game {
     }
     kickPlayer(targetName: string, calledById: string) {
         const calledBy = this.players.get(calledById);
-        if(!calledBy || !calledBy.isAdmin) {
+        if (!calledBy || !calledBy.isAdmin) {
             throw new Error("Only the admin can kick players.");
         }
         const target = this.playersByName.get(targetName);
-        if(!target) {
+        if (!target) {
             throw new Error("Player not found.");
         }
         this.players.delete(target.privateId);
         this.playersByName.delete(target.name);
     }
-    vote(voterId: string, targetId: string) {
+    vote(voterId: string, targetName: string) {
         const voter = this.players.get(voterId);
-        const target = this.players.get(targetId);
-        if(!voter || !target) {
+        const target = this.playersByName.get(targetName);
+        if (!voter || !target) {
             throw new Error("Voter or target not found.");
         }
-        if(this.phase !== "vote") {
+        if (this.phase !== "vote") {
             throw new Error("Cannot vote at this time.");
         }
-        if(voter.voted) {
-            if(voter.voted === target) {
+        if (voter.voted) {
+            if (voter.voted === target) {
                 return;
             }
             voter.voted.roundVotes--;
         }
         voter.voted = target;
         target.roundVotes++;
+        console.log(`${voter.name} voted for ${target.name}. Total votes: ${target.roundVotes}`);
     }
     leave(playerId: string) {
         const player = this.players.get(playerId);
-        if(!player) {
+        if (!player) {
             throw new Error("Player doesn't exist.");
         }
         this.players.delete(playerId);
@@ -126,14 +134,14 @@ export class Game {
         return this.players.get(privateId);
     }
     gameToPublic(): publicGame {
-    return {
-        players: Array.from(this.players.values()).map(playerToPublic),
-        totalRounds: this.totalRounds,
-        currentRound: this.currentRound,
-        maxPlayers: this.maxPlayers,
-        phase: this.phase
-    };
-}
+        return {
+            players: Array.from(this.players.values()).map(playerToPublic),
+            totalRounds: this.totalRounds,
+            currentRound: this.currentRound,
+            maxPlayers: this.maxPlayers,
+            phase: this.phase
+        };
+    }
 };
 
 
@@ -142,7 +150,7 @@ export interface publicPlayer {
     roundsWon: number;
     totalVotes: number;
     roundVotes: number;
-    voted: publicPlayer | null;
+    voted: string | null;
     color?: string;
     isAdmin: boolean;
 }
@@ -161,7 +169,7 @@ function playerToPublic(player: Player): publicPlayer {
         roundsWon: player.roundsWon,
         totalVotes: player.totalVotes,
         roundVotes: player.roundVotes,
-        voted: player.voted ? playerToPublic(player.voted) : null,
+        voted: player.voted?.name || null,
         color: player.color,
         isAdmin: player.isAdmin
     };

@@ -94,6 +94,7 @@ wss.on('connection', (ws) => {
 				const user = new User(message.playerName);
 				wsUsers.set(ws, user);
 				room.users.set(user.privateId, user);
+				room.game.playerJoins(user.name, false, user.privateId);
 				room.activePlayers++;
 				user.room = room;
 				break;
