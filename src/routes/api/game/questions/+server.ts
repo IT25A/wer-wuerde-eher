@@ -16,12 +16,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const categoryIds = Array.isArray(body.categoryIds)
 		? [
-				...new Set(
-					body.categoryIds.filter(
-						(id): id is number => typeof id === 'number' && Number.isInteger(id) && id > 0
-					)
+			...new Set(
+				body.categoryIds.filter(
+					(id): id is number => typeof id === 'number' && Number.isInteger(id) && id > 0
 				)
-			]
+			)
+		]
 		: [];
 	const count = Number(body.count);
 
