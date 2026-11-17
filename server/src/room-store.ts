@@ -1,5 +1,6 @@
 import type { Room, RoomPlayer } from '../../shared/room-types';
 import { MAX_PLAYERS_PER_ROOM } from '../../shared/room-types';
+import { deleteGame } from './game-store';
 
 const rooms = new Map<string, Room>();
 
@@ -115,6 +116,7 @@ export function removePlayerFromRoom(code: string, playerId: string): Room | nul
 
     if (room.players.length === 0) {
         rooms.delete(code);
+        deleteGame(code);
         console.log(`Room ${code} wurde gelöscht (keine Spieler mehr)`);
         return null;
     }

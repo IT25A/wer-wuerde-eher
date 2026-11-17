@@ -16,7 +16,7 @@
 <main>
 	<h1>Wer würde eher?</h1>
 	<div id="button-container">
-		<button type="button" id="online" disabled>
+		<button type="button" id="online" onclick={() => goto(resolve('/online'))}>
 			Online <span class="material-symbols-outlined"> public </span>
 		</button>
 		<button type="button" id="hotseat" onclick={() => goto(resolve('/hotseat'))}>

@@ -1,4 +1,4 @@
-import type { Room, RoomPlayer, ChatMessage } from './room-types';
+import type { Room, RoomPlayer, ChatMessage, GameState } from './room-types';
 
 // Daten, die der Client an den Server senden darf
 export interface ClientToServerEvents {
@@ -21,6 +21,17 @@ export interface ClientToServerEvents {
     'chat:send': (data: {
         message: string;
     }) => void;
+
+    // Game
+    'game:start': (data: {
+        totalRounds: number;
+    }) => void;
+
+    'game:vote': (data: {
+        targetPlayerId: string;
+    }) => void;
+
+    'game:next-round': () => void;
 
 }
 
@@ -57,6 +68,19 @@ export interface ServerToClientEvents {
 
     'chat:message': (data: {
         message: ChatMessage;
+    }) => void;
+
+    // Game
+    'game:started': (data: {
+        state: GameState;
+    }) => void;
+
+    'game:state-updated': (data: {
+        state: GameState;
+    }) => void;
+
+    'game:error': (data: {
+        message: string;
     }) => void;
 
 }

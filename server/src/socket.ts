@@ -12,6 +12,12 @@ import {
     removePlayerFromRoom,
     setPlayerConnectionStatus
 } from './room-store';
+import {
+    initGame,
+    getGameState,
+    processVote,
+    nextRound
+} from './game-store';
 
 // Unser Socket.IO-Server kennt jetzt unsere Event-Typen.
 type GameServer = Server<
@@ -160,6 +166,69 @@ export function registerSocketHandlers(io: GameServer): void {
             console.log(`Chat-Nachricht von ${playerName} in Room ${roomCode}: ${message}`);
 
             io.to(roomCode).emit('chat:message', { message: chatMessage });
+        });
+
+        socket.on('game:start', (data) => {
+            const roomCode = typedSocket.data.roomCode;
+            if (!roomCode) {
+                socket.emit('game:error', { message: 'Du bist in keinem Room' });
+                return;
+            }
+            const room = getRoom(roomCode);
+            if (!room) {
+                socket.emit('game:error', { message: 'Room existiert nicht' });
+                return;
+            }
+            if (room.hostId !== socket.id) {
+                socket.emit('game:error', { message: 'Nur der Host darf das Spiel starten' });
+                return;
+            }
+            const playerIds = room.players.map((p) => p.id);
+            const playerNames = room.players.map((p) => p.name);
+            const gameState = initGame(roomCode, playerIds, playerNames, data.totalRounds);
+            if (!gameState) {
+                socket.emit('game:error', { message: 'Spiel konnte nicht gestartet werden (min. 2 Spieler benötigt)' });
+                return;
+            }
+            room.status = 'playing';
+            io.to(roomCode).emit('game:started', { state: gameState });
+        });
+
+        socket.on('game:vote', (data) => {
+            const roomCode = typedSocket.data.roomCode;
+            if (!roomCode) {
+                socket.emit('game:error', { message: 'Du bist in keinem Room' });
+                return;
+            }
+            const gameState = processVote(roomCode, socket.id, data.targetPlayerId);
+            if (!gameState) {
+                socket.emit('game:error', { message: 'Vote konnte nicht verarbeitet werden' });
+                return;
+            }
+            io.to(roomCode).emit('game:state-updated', { state: gameState });
+        });
+
+        socket.on('game:next-round', () => {
+            const roomCode = typedSocket.data.roomCode;
+            if (!roomCode) {
+                socket.emit('game:error', { message: 'Du bist in keinem Room' });
+                return;
+            }
+            const room = getRoom(roomCode);
+            if (!room) {
+                socket.emit('game:error', { message: 'Room existiert nicht' });
+                return;
+            }
+            if (room.hostId !== socket.id) {
+                socket.emit('game:error', { message: 'Nur der Host darf die nächste Runde starten' });
+                return;
+            }
+            const gameState = nextRound(roomCode);
+            if (!gameState) {
+                socket.emit('game:error', { message: 'Nächste Runde konnte nicht gestartet werden' });
+                return;
+            }
+            io.to(roomCode).emit('game:state-updated', { state: gameState });
         });
 
         socket.on('client:ping', () => {
