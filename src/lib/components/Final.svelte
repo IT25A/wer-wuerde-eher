@@ -7,6 +7,14 @@
 			.filter((r) => r.roundsWon === top.roundsWon && r.votesReceived === top.votesReceived)
 			.map((r) => r.name)
 	);
+	let isStarting = $state(false);
+	let error = $state('');
+
+	async function playAgain() {
+		isStarting = true;
+		error = (await game.playAgain()) ?? '';
+		isStarting = false;
+	}
 </script>
 
 <div class="text-center">
@@ -37,8 +45,11 @@
 </ol>
 
 <div class="mt-8 grid gap-3">
-	<button class="btn btn-primary" onclick={() => game.playAgain()}
-		>Nochmal mit denselben Spielern</button
-	>
+	<button class="btn btn-primary" disabled={isStarting} onclick={playAgain}>
+		{isStarting ? 'Fragen werden geladen …' : 'Nochmal mit denselben Spielern'}
+	</button>
 	<button class="btn" onclick={() => game.reset()}>Neues Spiel</button>
 </div>
+{#if error}
+	<p class="mt-2 text-rose-300" role="alert">{error}</p>
+{/if}

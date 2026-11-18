@@ -1,9 +1,42 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { game, MAX_PLAYERS, MIN_PLAYERS, ROUND_OPTIONS } from '$lib/game.svelte';
-	import { questions } from '$lib/questions';
+	
+	type Category = { id: number; name: string; description: string | null; questionCount: number }
+	let categories = $state<Category[]>([]);
+	let categoriesError = $state('');
 
 	let name = $state('');
 	let error = $state('');
+	let isStarting = $state(false);
+	let selectedQuestionCount = $derived(
+		categories
+			.filter((category) => game.selectedCategoryIds.includes(category.id))
+			.reduce((total, category) => total + category.questionCount, 0)
+	);
+
+	async function loadCategories() {
+		try {
+			const response = await fetch('/api/categories');
+			if (!response.ok) throw new Error('Kategorien konnten nicht geladen werden.');
+			categories = (await response.json()) as Category[];
+			game.selectedCategoryIds = game.selectedCategoryIds.filter((id) =>
+				categories.some((category) => category.id === id)
+			);
+		} catch {
+			categoriesError = 'Kategorien konnten nicht geladen werden.';
+		}
+	}
+
+	onMount(() => {
+		void loadCategories();
+	});
+
+	async function startGame() {
+		isStarting = true;
+		error = await game.start();
+		isStarting = false;
+	}
 
 	function add(event: SubmitEvent) {
 		event.preventDefault();
@@ -62,9 +95,39 @@
 </section>
 
 <fieldset class="mt-6">
+	<legend class="muted mb-2">Kategorien</legend>
+	{#if categoriesError}
+		<p class="text-rose-300" role="alert">{categoriesError}</p>
+	{:else if categories.length === 0}
+		<p class="muted">Kategorien werden geladen …</p>
+	{/if}
+	<div class="grid gap-3 sm:grid-cols-2">
+		{#each categories as category (category.id)}
+			<label
+				class="flex cursor-pointer items-start gap-3 rounded-xl border border-white/15 bg-white/8 p-4 transition hover:bg-white/15 has-checked:border-cyan-300 has-checked:bg-cyan-300/15 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-cyan-300"
+			>
+				<input
+					class="mt-1 accent-cyan-300"
+					type="checkbox"
+					checked={game.selectedCategoryIds.includes(category.id)}
+					onchange={() => game.toggleCategory(category.id)}
+				/>
+				<span>
+					<span class="block font-semibold">{category.name}</span>
+					<span class="muted mt-1 block text-sm">{category.description}</span>
+				</span>
+			</label>
+		{/each}
+	</div>
+	{#if game.selectedCategoryIds.length === 0}
+		<p class="mt-2 text-rose-300" role="alert">Wählt mindestens eine Kategorie aus.</p>
+	{/if}
+</fieldset>
+
+<fieldset class="mt-6">
 	<legend class="muted mb-2">Anzahl Runden</legend>
 	<div class="flex gap-2">
-		{#each ROUND_OPTIONS.filter((n) => n <= questions.length) as option (option)}
+		{#each ROUND_OPTIONS.filter((n) => n <= selectedQuestionCount) as option (option)}
 			<label
 				class="flex-1 cursor-pointer rounded-xl border border-white/15 bg-white/8 py-3 text-center text-lg font-semibold transition hover:bg-white/15 has-checked:border-transparent has-checked:bg-cyan-300 has-checked:text-slate-950 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-cyan-300"
 			>
@@ -81,6 +144,13 @@
 	</div>
 </fieldset>
 
-<button class="btn btn-primary mt-8 w-full" disabled={!game.canStart} onclick={() => game.start()}>
-	Spiel starten
+<button
+	class="btn btn-primary mt-8 w-full"
+    disabled={!game.canStart || game.selectedCategoryIds.length === 0 || categories.length === 0 || isStarting}
+	onclick={startGame}
+>
+	{isStarting ? 'Fragen werden geladen …' : 'Spiel starten'}
 </button>
+{#if error}
+	<p class="mt-2 text-rose-300" role="alert">{error}</p>
+{/if}
