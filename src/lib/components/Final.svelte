@@ -17,25 +17,21 @@
 	}
 </script>
 
-<div class="text-center">
-	<h1 class="text-4xl font-extrabold">Endergebnis</h1>
-	<p class="mt-4 text-2xl font-extrabold text-cyan-300">
+<div class="final-summary">
+	<h1 class="final-title">Endergebnis</h1>
+	<p class="final-winner">
 		Am ehesten: {winners.join(' & ')}
 	</p>
-	<p class="muted mt-1 text-sm">
+	<p class="muted final-description">
 		Wer die meisten Runden "gewonnen" hat, wurde am häufigsten gewählt.
 	</p>
 </div>
 
-<ol class="mt-6 space-y-2">
+<ol class="final-ranking">
 	{#each game.ranking as entry, i (entry.name)}
-		<li
-			class="card flex items-center justify-between px-4 py-3 {i === 0
-				? 'ring-2 ring-cyan-300/70'
-				: ''}"
-		>
-			<span class="text-lg font-semibold">{i + 1}. {entry.name}</span>
-			<span class="muted text-sm">
+		<li class="card final-ranking-entry {i === 0 ? 'final-ranking-winner' : ''}">
+			<span class="final-ranking-name">{i + 1}. {entry.name}</span>
+			<span class="muted final-ranking-stats">
 				{entry.roundsWon}
 				{entry.roundsWon === 1 ? 'Runde' : 'Runden'} · {entry.votesReceived}
 				{entry.votesReceived === 1 ? 'Stimme' : 'Stimmen'}
@@ -44,12 +40,31 @@
 	{/each}
 </ol>
 
-<div class="mt-8 grid gap-3">
-	<button class="btn btn-primary" disabled={isStarting} onclick={playAgain}>
-		{isStarting ? 'Fragen werden geladen …' : 'Nochmal mit denselben Spielern'}
-	</button>
-	<button class="btn" onclick={() => game.reset()}>Neues Spiel</button>
+<div class="final-actions">
+	<button
+		class="btn btn-primary final-play-again"
+		onclick={() => game.playAgain()}
+		id="play-again-btn">Nochmal mit denselben Spielern</button
+	>
+	<button class="btn final-new-game" onclick={() => game.reset()} id="new-game-btn"
+		>Neues Spiel</button
+	>
 </div>
 {#if error}
 	<p class="mt-2 text-rose-300" role="alert">{error}</p>
 {/if}
+
+<style>
+	.final-actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 1rem;
+	}
+
+	#play-again-btn,
+	#new-game-btn {
+		font-size: 1rem;
+		padding: 0.35rem 1rem;
+	}
+</style>

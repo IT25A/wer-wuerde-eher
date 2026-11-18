@@ -1,36 +1,69 @@
 <script lang="ts">
 	import { game } from '$lib/game.svelte';
+	import PlayerChip from '$lib/components/PlayerChip.svelte';
 </script>
 
-<div class="flex flex-col items-center text-center">
-	<div class="flex items-center gap-1.5" aria-hidden="true">
-		{#each { length: game.totalRounds } as _, i (i)}
-			<span
-				class="h-1.5 w-6 rounded-full transition-colors {i < game.round
-					? 'bg-cyan-300'
-					: 'bg-white/15'}"
-			></span>
-		{/each}
-	</div>
-	<p class="muted mt-2 text-sm tracking-widest uppercase">
+<div class="pass-device-content">
+
+	<p>
 		Runde {game.round} von {game.totalRounds}
 	</p>
 
-	<h1 class="muted mt-10 text-lg">Gib das Gerät an</h1>
+	<h1>Gib das Gerät an</h1>
 
-	<div
-		class="mt-6 flex h-28 w-28 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-cyan-400 text-6xl font-extrabold text-white shadow-2xl ring-4 shadow-violet-900/50 ring-white/20"
-		aria-hidden="true"
-	>
-		{game.voter.name.charAt(0).toUpperCase()}
-	</div>
-	<p class="mt-5 text-4xl font-extrabold wrap-break-word">{game.voter.name}</p>
+	<PlayerChip player={game.voter} allowRemove = {false} style="font-size: 4em;"/>
+	<p class="pass-device-player-name">{game.voter.name}</p>
 
-	<p class="card muted my-10 max-w-xs px-4 py-3 text-sm">
-		Die anderen schauen bitte kurz weg. Die Frage und die Abstimmung sind geheim.
-	</p>
-
-	<button class="btn btn-primary w-full" onclick={() => game.reveal()}>
-		Ich bin {game.voter.name}
+	<button class="continue-btn" onclick={() => game.reveal()}>
+		Weiter
 	</button>
+		<div class="round-progress" aria-hidden="true">
+		{#each { length: game.totalRounds } as _, i (i)}
+			<span
+				class="pass-round-segment {i < game.round
+					? 'pass-round-segment-complete'
+					: 'pass-round-segment-pending'}"
+			></span>
+		{/each}
+	</div>
 </div>
+<style>
+	.pass-device-content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.round-progress {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.pass-round-segment {
+		width: 1rem;
+		height: 1rem;
+		border-radius: 50%;
+		background-color: #ccc;
+	}
+
+	.pass-round-segment-complete {
+		background-color: var(--color10);
+	}
+
+	.pass-round-segment-pending {
+		background-color: #ccc;
+	}
+
+
+    .pass-device-player-name {
+        margin-bottom: 0;
+    }
+
+    .continue-btn {
+		font-size: 2rem;
+		padding: .25rem 2rem;
+        max-width: 20em;
+		background-color: var(--color10);
+    }
+</style>

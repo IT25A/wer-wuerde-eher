@@ -1,8 +1,20 @@
+import { goto } from '$app/navigation';
+import { resolve } from '$app/paths';
+import { assignRandomColor } from './playerColors';
 export type Phase = 'setup' | 'pass' | 'vote' | 'result' | 'final';
 
 export const MIN_PLAYERS = 2;
-export const MAX_PLAYERS = 10;
-export const ROUND_OPTIONS = [5, 10, 15];
+export const MAX_PLAYERS = 20;
+export const ROUND_OPTIONS = [5, 10, 15, 20];
+
+function shuffle<T>(items: T[]): T[] {
+	const copy = [...items];
+	for (let i = copy.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[copy[i], copy[j]] = [copy[j], copy[i]];
+	}
+	return copy;
+}
 
 export type Player = {
 	name: string;
@@ -10,6 +22,7 @@ export type Player = {
 	votesTotal: number;
 	votes: number;
 	voted: Player | null;
+	color?: string;
 }
 
 export class Game {
@@ -53,20 +66,21 @@ export class Game {
 		if (this.players.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
 			return 'Diesen Namen gibt es schon.';
 		}
-		const player:Player = {name, roundsWon: 0, votesTotal: 0, votes: 0, voted: null};
+		const player: Player = { name, roundsWon: 0, votesTotal: 0, votes: 0, voted: null };
+		assignRandomColor(player);
 		this.players.push(player);
 		return null;
 	}
 
-removePlayer(index: number | Player) {
-    const i = typeof index === "number"
-        ? index
-        : this.players.indexOf(index);
+	removePlayer(index: number | Player) {
+		const i = typeof index === "number"
+			? index
+			: this.players.indexOf(index);
 
-    if (i !== -1) {
-        this.players.splice(i, 1);
-    }
-}
+		if (i !== -1) {
+			this.players.splice(i, 1);
+		}
+	}
 
 	async start(): Promise<string | null> {
 		if (!this.canStart) return 'Mindestens zwei Spieler werden benötigt.';
@@ -143,9 +157,11 @@ removePlayer(index: number | Player) {
 		return this.start();
 	}
 
+	/** Zurück zur Startseite; der Spielstand wird dabei gelöscht. */
 	reset() {
 		this.players = [];
 		this.phase = 'setup';
+		goto(resolve('/'));
 	}
 }
 
