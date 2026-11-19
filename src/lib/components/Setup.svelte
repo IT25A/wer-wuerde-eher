@@ -97,9 +97,7 @@
 	{/if}
 	<div class="grid gap-3 sm:grid-cols-2">
 		{#each categories as category (category.id)}
-			<label
-				class="flex cursor-pointer items-start gap-3 rounded-xl border border-white/15 bg-white/8 p-4 transition hover:bg-white/15 has-checked:border-cyan-300 has-checked:bg-cyan-300/15 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-cyan-300"
-			>
+			<label class="category-label">
 				<input
 					class="mt-1 accent-cyan-300"
 					type="checkbox"
@@ -107,8 +105,9 @@
 					onchange={() => game.toggleCategory(category.id)}
 				/>
 				<span>
-					<span class="block font-semibold">{category.name}</span>
-					<span class="muted mt-1 block text-sm">{category.description}</span>
+					<span class="category-name" title={category.description}>
+						{category.name}
+					</span>
 				</span>
 			</label>
 		{/each}

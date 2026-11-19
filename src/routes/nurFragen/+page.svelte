@@ -19,6 +19,7 @@
 		font-family: 'Bebas Neue', cursive;
 	}
 	p {
+		text-wrap: balance;
 		font-size: 3rem;
 		text-align: center;
 	}
