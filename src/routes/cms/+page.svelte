@@ -70,7 +70,7 @@
 	let deleteDialog: HTMLDialogElement | null = null;
 	let categoryToDelete: Category | null = $state(null);
 
-	async function patchCategory(
+	async function toggleCategory(
 		categoryId: number,
 		questionIds: number | number[],
 		checked: boolean
@@ -82,6 +82,26 @@
 		});
 		if (!response.ok) errorText = 'Kategorie konnte nicht aktualisiert werden.';
 		await loadQuestions();
+	}
+
+	async function patchCategoryDetails(categoryId: number, name?: string, description?: string) {
+		const response = await fetch(`/api/cms/categories/`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ categoryId, name, description, action: 'updateDetails' })
+		});
+		if (!response.ok) errorText = 'Kategorie konnte nicht aktualisiert werden.';
+		await loadCategories();
+	}
+	let editCategoryDialog: HTMLDialogElement | null = null;
+	let categoryToEdit: Category | null = $state(null);
+	let editCategoryName: string = $state('');
+	let editCategoryDescription: string = $state('');
+	function openEditCategoryDialog(category: Category) {
+		categoryToEdit = category;
+		editCategoryName = category.name ?? '';
+		editCategoryDescription = category.description ?? '';
+		editCategoryDialog?.showModal();
 	}
 </script>
 
@@ -98,8 +118,15 @@
 							categoryToDelete = category;
 							deleteDialog?.showModal();
 						}}>X</button
-					></th
-				>
+					>
+					<button
+						onclick={() => {
+							openEditCategoryDialog(category);
+						}}
+					>
+						Bearbeiten
+					</button>
+				</th>
 			{/each}
 		</tr>
 	</thead>
@@ -113,7 +140,7 @@
 						><input
 							type="checkbox"
 							checked={question.categoryIds.includes(category.id)}
-							onchange={(e) => patchCategory(category.id, question.id, e.currentTarget.checked)}
+							onchange={(e) => toggleCategory(category.id, question.id, e.currentTarget.checked)}
 						/></td
 					>
 				{/each}
@@ -143,4 +170,38 @@
 			loadCategories();
 		}}>Löschen</button
 	>
+</dialog>
+<dialog bind:this={editCategoryDialog}>
+	<h3>Kategorie bearbeiten</h3>
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			if (categoryToEdit) {
+				const form = e.target as HTMLFormElement;
+				const nameInput = form.elements.namedItem('editCategoryName') as HTMLInputElement;
+				const descriptionInput = form.elements.namedItem(
+					'editCategoryDescription'
+				) as HTMLInputElement;
+				const name = nameInput.value.trim();
+				const description = descriptionInput.value.trim();
+				patchCategoryDetails(categoryToEdit.id, name, description);
+			}
+			editCategoryDialog?.close();
+			categoryToEdit = null;
+			loadCategories();
+		}}
+	>
+		<input
+			type="text"
+			name="editCategoryName"
+			bind:value={editCategoryName}
+			placeholder="Kategoriename"
+		/>
+		<textarea
+			name="editCategoryDescription"
+			bind:value={editCategoryDescription}
+			placeholder="Beschreibung"></textarea>
+		<button type="submit">Speichern</button>
+		<button onclick={() => editCategoryDialog?.close()}>Abbrechen</button>
+	</form>
 </dialog>
