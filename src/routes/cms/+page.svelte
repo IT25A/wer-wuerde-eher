@@ -21,7 +21,7 @@
 	}
 
 	async function loadQuestions() {
-		const response = await fetch('/api/game/allQuestions');
+		const response = await fetch('/api/cms/question/?questionId=all');
 		if (!response.ok) errorText = 'Fragen konnten nicht geladen werden.';
 		questions = (await response.json()).questions as question[];
 	}
