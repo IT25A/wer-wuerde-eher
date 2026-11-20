@@ -22,7 +22,7 @@
 
 	async function loadQuestions() {
 		const response = await fetch('/api/game/allQuestions');
-		if (!response.ok) throw new Error('Fragen konnten nicht geladen werden.');
+		if (!response.ok) errorText = 'Fragen konnten nicht geladen werden.';
 		questions = (await response.json()).questions as question[];
 	}
 
@@ -36,7 +36,7 @@
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ categoryName: name, description: description })
 		});
-		if (!response.ok) throw new Error('Kategorie konnte nicht hinzugefügt werden.');
+		if (!response.ok) errorText = 'Kategorie konnte nicht hinzugefügt werden.';
 		await loadCategories();
 	}
 	async function handleAddCategory(event: Event) {
@@ -57,6 +57,32 @@
 			errorText = 'Bitte geben Sie einen Kategorienamen ein.';
 		}
 	}
+
+	async function deleteCategory(categoryId: number) {
+		const response = await fetch(`/api/cms/categories/`, {
+			method: 'DELETE',
+			body: JSON.stringify({ categoryId: categoryId })
+		});
+		if (!response.ok) errorText = 'Kategorie konnte nicht gelöscht werden.';
+		await loadCategories();
+	}
+
+	let deleteDialog: HTMLDialogElement | null = null;
+	let categoryToDelete: Category | null = $state(null);
+
+	async function patchCategory(
+		categoryId: number,
+		questionIds: number | number[],
+		checked: boolean
+	) {
+		const response = await fetch(`/api/cms/categories/`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ categoryId, questionIds, action: checked ? 'add' : 'remove' })
+		});
+		if (!response.ok) errorText = 'Kategorie konnte nicht aktualisiert werden.';
+		await loadQuestions();
+	}
 </script>
 
 <h1>Kategorien</h1>
@@ -66,7 +92,14 @@
 			<th>ID</th>
 			<th>Frage</th>
 			{#each categories as category (category.id)}
-				<th>{category.name}</th>
+				<th
+					>{category.name}<button
+						onclick={() => {
+							categoryToDelete = category;
+							deleteDialog?.showModal();
+						}}>X</button
+					></th
+				>
 			{/each}
 		</tr>
 	</thead>
@@ -76,7 +109,13 @@
 				<td>{question.id}</td>
 				<td>{question.questionText}</td>
 				{#each categories as category (category.id)}
-					<td><input type="checkbox" checked={question.categoryIds.includes(category.id)} /></td>
+					<td
+						><input
+							type="checkbox"
+							checked={question.categoryIds.includes(category.id)}
+							onchange={(e) => patchCategory(category.id, question.id, e.currentTarget.checked)}
+						/></td
+					>
 				{/each}
 			</tr>
 		{/each}
@@ -91,3 +130,17 @@
 {#if errorText}
 	<div class="text-red-500">{errorText}</div>
 {/if}
+
+<dialog bind:this={deleteDialog}>
+	<h3>Kategorie löschen</h3>
+	<p>Möchten Sie die Kategorie {categoryToDelete?.name} wirklich löschen?</p>
+	<button onclick={() => deleteDialog?.close()}>Abbrechen</button>
+	<button
+		onclick={() => {
+			if (categoryToDelete) deleteCategory(categoryToDelete.id);
+			deleteDialog?.close();
+			categoryToDelete = null;
+			loadCategories();
+		}}>Löschen</button
+	>
+</dialog>
