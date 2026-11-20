@@ -7,6 +7,11 @@
 	}
 	let questions = $state<question[]>([]);
 	type Category = { id: number; name: string; description: string | null; questionCount: number };
+	interface Question {
+		id: number;
+		questionText: string;
+		categoryIds: number[];
+	}
 	let categories = $state<Category[]>([]);
 	let errorText = $state('');
 	async function loadCategories() {
@@ -103,6 +108,24 @@
 		editCategoryDescription = category.description ?? '';
 		editCategoryDialog?.showModal();
 	}
+	let editQuestionTextDialog: HTMLDialogElement | null = $state(null);
+	let questionToEdit: Question | null = $state(null);
+	let editQuestionText: string = $state('');
+	function openEditQuestionTextDialog(question: Question) {
+		questionToEdit = question;
+		editQuestionText = question.questionText ?? '';
+		editQuestionTextDialog?.showModal();
+	}
+
+	async function patchQuestionText(questionId: number, questionText: string) {
+		const response = await fetch(`/api/cms/question/`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ questionId, question_text: questionText })
+		});
+		if (!response.ok) errorText = 'Frage konnte nicht aktualisiert werden.';
+		await loadQuestions();
+	}
 </script>
 
 <h1>Kategorien</h1>
@@ -134,7 +157,11 @@
 		{#each questions as question (question.id)}
 			<tr>
 				<td>{question.id}</td>
-				<td>{question.questionText}</td>
+				<td
+					>{question.questionText}<button onclick={() => openEditQuestionTextDialog(question)}
+						>Edit</button
+					></td
+				>
 				{#each categories as category (category.id)}
 					<td
 						><input
@@ -203,5 +230,26 @@
 			placeholder="Beschreibung"></textarea>
 		<button type="submit">Speichern</button>
 		<button onclick={() => editCategoryDialog?.close()}>Abbrechen</button>
+	</form>
+</dialog>
+<dialog bind:this={editQuestionTextDialog}>
+	<h3>Frage bearbeiten</h3>
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			if (questionToEdit) {
+				const form = e.target as HTMLFormElement;
+				const textInput = form.elements.namedItem('editQuestionText') as HTMLInputElement;
+				const text = textInput.value.trim();
+				patchQuestionText(questionToEdit.id, text);
+			}
+			editQuestionTextDialog?.close();
+			questionToEdit = null;
+			loadQuestions();
+		}}
+	>
+		<textarea name="editQuestionText" bind:value={editQuestionText} placeholder="Frage"></textarea>
+		<button type="submit">Speichern</button>
+		<button onclick={() => editQuestionTextDialog?.close()}>Abbrechen</button>
 	</form>
 </dialog>
