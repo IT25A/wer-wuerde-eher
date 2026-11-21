@@ -126,6 +126,38 @@
 		if (!response.ok) errorText = 'Frage konnte nicht aktualisiert werden.';
 		await loadQuestions();
 	}
+
+	let deleteQuestionDialog: HTMLDialogElement | null = $state(null);
+	let questionToDelete: Question | null = $state(null);
+
+	function handleAddQuestion(
+		event: SubmitEvent & { currentTarget: EventTarget & HTMLFormElement }
+	) {
+		event.preventDefault();
+		const form = event.currentTarget;
+		const questionTextInput = form.elements.namedItem('questionText') as HTMLInputElement;
+		const questionText = questionTextInput.value.trim();
+		if (questionText) {
+			fetch('/api/cms/question', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ question_text: questionText })
+			})
+				.then((response) => {
+					if (!response.ok) throw new Error('Frage konnte nicht hinzugefügt werden.');
+					return response.json();
+				})
+				.then(() => {
+					loadQuestions();
+					questionTextInput.value = '';
+				})
+				.catch((error) => {
+					errorText = error.message;
+				});
+		} else {
+			errorText = 'Bitte geben Sie eine Frage ein.';
+		}
+	}
 </script>
 
 <h1>Kategorien</h1>
@@ -175,16 +207,23 @@
 		{/each}
 	</tbody>
 </table>
-<form id="addCategoryForm" onsubmit={handleAddCategory}>
-	<input type="text" placeholder="Kategoriename" name="categoryName" />
-	<input type="text" placeholder="Beschreibung" name="categoryDescription" />
-	<button type="submit">Kategorie hinzufügen</button>
-</form>
+<div id="addStuff">
+	<form id="addCategoryForm" onsubmit={handleAddCategory}>
+		<input type="text" placeholder="Kategoriename" name="categoryName" />
+		<input type="text" placeholder="Beschreibung" name="categoryDescription" />
+		<button type="submit">Kategorie hinzufügen</button>
+	</form>
+	<form id="addQuestionForm" onsubmit={handleAddQuestion}>
+		<input type="text" placeholder="Fragenstellung" name="questionText" />
+		<button type="submit">Frage hinzufügen</button>
+	</form>
+</div>
 
 {#if errorText}
 	<div class="text-red-500">{errorText}</div>
 {/if}
 
+<!-- #region Dialogs -->
 <dialog bind:this={deleteDialog}>
 	<h3>Kategorie löschen</h3>
 	<p>Möchten Sie die Kategorie {categoryToDelete?.name} wirklich löschen?</p>
@@ -233,6 +272,14 @@
 	</form>
 </dialog>
 <dialog bind:this={editQuestionTextDialog}>
+	<button
+		onclick={() => {
+			if (questionToEdit) {
+				questionToDelete = questionToEdit;
+				deleteQuestionDialog?.showModal();
+			}
+		}}>Frage löschen</button
+	>
 	<h3>Frage bearbeiten</h3>
 	<form
 		onsubmit={(e) => {
@@ -253,3 +300,28 @@
 		<button onclick={() => editQuestionTextDialog?.close()}>Abbrechen</button>
 	</form>
 </dialog>
+<dialog bind:this={deleteQuestionDialog}>
+	<h3>Frage löschen</h3>
+	<p>Möchten Sie die Frage {questionToDelete?.questionText} wirklich löschen?</p>
+	<button
+		onclick={async () => {
+			if (questionToDelete) {
+				await fetch(`/api/cms/question/`, {
+					method: 'DELETE',
+					body: JSON.stringify({ questionId: questionToDelete.id })
+				});
+			}
+			deleteQuestionDialog?.close();
+			editQuestionTextDialog?.close();
+			questionToDelete = null;
+			questionToEdit = null;
+			loadQuestions();
+		}}>Löschen</button
+	>
+	<button
+		onclick={() => {
+			deleteQuestionDialog?.close();
+		}}>Abbrechen</button
+	>
+</dialog>
+<!-- #endregion -->

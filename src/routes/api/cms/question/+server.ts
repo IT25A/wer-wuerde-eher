@@ -175,3 +175,21 @@ export const DELETE: RequestHandler = async ({ request }) => {
 	database.prepare(`DELETE FROM questions WHERE id = ?`).run(body.questionId);
 	return json({ message: 'Question deleted successfully.' }, { status: 200 });
 };
+
+export const POST: RequestHandler = async ({ request }) => {
+	let payload: unknown;
+	try {
+		payload = await request.json();
+	} catch {
+		return json({ error: 'Invalid request body.' }, { status: 400 });
+	}
+	if (typeof payload !== 'object' || payload === null) {
+		return json({ error: 'Invalid request body.' }, { status: 400 });
+	}
+	const body = payload as { question_text: string };
+	if (!body.question_text) {
+		return json({ error: 'Missing required field: question_text.' }, { status: 400 });
+	}
+	database.prepare(`INSERT INTO questions (question_text) VALUES (?)`).run(body.question_text);
+	return json({ message: 'Question created successfully.' }, { status: 201 });
+};
