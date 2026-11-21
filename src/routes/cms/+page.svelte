@@ -1,3 +1,4 @@
+<!-- #region Scripts -->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	interface question {
@@ -29,7 +30,9 @@
 		const response = await fetch('/api/cms/question/?questionId=all');
 		if (!response.ok) errorText = 'Fragen konnten nicht geladen werden.';
 		questions = (await response.json()).questions as question[];
+		console.log('Loaded questions:', questions);
 	}
+	
 
 	onMount(() => {
 		loadCategories();
@@ -159,7 +162,7 @@
 		}
 	}
 </script>
-
+<!-- #endregion -->
 <h1>Kategorien</h1>
 <table>
 	<thead>
@@ -190,9 +193,10 @@
 			<tr>
 				<td>{question.id}</td>
 				<td
-					>{question.questionText}<button onclick={() => openEditQuestionTextDialog(question)}
+					><button onclick={() => openEditQuestionTextDialog(question)}
 						>Edit</button
-					></td
+					>
+					{question.questionText}</td
 				>
 				{#each categories as category (category.id)}
 					<td
@@ -220,24 +224,25 @@
 </div>
 
 {#if errorText}
-	<div class="text-red-500">{errorText}</div>
+	<p class="error">{errorText}</p>
 {/if}
 
 <!-- #region Dialogs -->
-<dialog bind:this={deleteDialog}>
+<dialog  bind:this={deleteDialog}>
 	<h3>Kategorie löschen</h3>
 	<p>Möchten Sie die Kategorie {categoryToDelete?.name} wirklich löschen?</p>
-	<button onclick={() => deleteDialog?.close()}>Abbrechen</button>
-	<button
-		onclick={() => {
-			if (categoryToDelete) deleteCategory(categoryToDelete.id);
-			deleteDialog?.close();
-			categoryToDelete = null;
-			loadCategories();
-		}}>Löschen</button
-	>
+	<div>
+		<button class="delete"
+			onclick={() => {
+				if (categoryToDelete) deleteCategory(categoryToDelete.id);
+				deleteDialog?.close();
+				categoryToDelete = null;
+				loadCategories();
+			}}>Löschen</button>
+			<button class="confirm" onclick={() => deleteDialog?.close()}>Abbrechen</button>
+	</div>
 </dialog>
-<dialog bind:this={editCategoryDialog}>
+<dialog class="KB" bind:this={editCategoryDialog}>
 	<h3>Kategorie bearbeiten</h3>
 	<form
 		onsubmit={(e) => {
@@ -267,12 +272,14 @@
 			name="editCategoryDescription"
 			bind:value={editCategoryDescription}
 			placeholder="Beschreibung"></textarea>
-		<button type="submit">Speichern</button>
-		<button onclick={() => editCategoryDialog?.close()}>Abbrechen</button>
+		<div>
+			<button class="confirm" type="submit">Speichern</button>
+			<button class="cancel" onclick={() => editCategoryDialog?.close()}>Abbrechen</button>
+		</div>
 	</form>
 </dialog>
-<dialog bind:this={editQuestionTextDialog}>
-	<button
+<dialog class="QE" bind:this={editQuestionTextDialog}>
+	<button class="delete"
 		onclick={() => {
 			if (questionToEdit) {
 				questionToDelete = questionToEdit;
@@ -296,14 +303,16 @@
 		}}
 	>
 		<textarea name="editQuestionText" bind:value={editQuestionText} placeholder="Frage"></textarea>
-		<button type="submit">Speichern</button>
-		<button onclick={() => editQuestionTextDialog?.close()}>Abbrechen</button>
+		<div>
+			<button class="confirm" type="submit">Speichern</button>
+			<button class="cancel" onclick={() => editQuestionTextDialog?.close()}>Abbrechen</button>
+		</div>
 	</form>
 </dialog>
 <dialog bind:this={deleteQuestionDialog}>
 	<h3>Frage löschen</h3>
 	<p>Möchten Sie die Frage {questionToDelete?.questionText} wirklich löschen?</p>
-	<button
+	<button class="delete"
 		onclick={async () => {
 			if (questionToDelete) {
 				await fetch(`/api/cms/question/`, {
@@ -318,10 +327,71 @@
 			loadQuestions();
 		}}>Löschen</button
 	>
-	<button
+	<button class="confirm"
 		onclick={() => {
 			deleteQuestionDialog?.close();
 		}}>Abbrechen</button
 	>
 </dialog>
 <!-- #endregion -->
+
+<style>
+	dialog[open] {
+    display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	}
+	dialog {
+		background-color: #0a1531;
+		color: #ffffff;
+		padding: 1rem;
+		border-radius: 0.5rem;
+		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+	}
+	dialog h3 {
+		color: #ffffff;
+		font-size: 1.5rem;
+	}
+	.error {
+		color: red;
+	}
+	.KB{
+		width: min(50%, calc(200px + 25%));
+	}
+	.KB form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	.confirm {
+		background-color: #4caf50;
+		color: white;
+		border: none;
+		cursor: pointer;
+	}
+	.cancel {
+		background-color: #f44336;
+		color: white;
+		border: none;
+		cursor: pointer;
+	}
+	.QE{
+		width: min(50%, calc(200px + 25%));
+	}
+	.QE form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	.delete {
+		background-color: #8e0900;
+		color: white;
+		border: none;
+		cursor: pointer;
+		align-self: flex-end;
+	}
+	textarea {
+		field-sizing: content;
+	}
+</style>
