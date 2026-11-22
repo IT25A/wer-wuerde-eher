@@ -70,11 +70,6 @@ export function processVote(roomCode: string, voterId: string, targetId: string)
         return null;
     }
 
-    if (voterId === targetId) {
-        console.log(`Spieler ${voterId} darf nicht für sich selbst voten`);
-        return null;
-    }
-
     const voterExists = gameState.players.some((p) => p.id === voterId);
     if (!voterExists) {
         console.log(`Ungültiger voterId: ${voterId}`);

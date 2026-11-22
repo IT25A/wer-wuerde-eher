@@ -46,11 +46,10 @@
 	{:else}
 		<header class="online-panel room-bar">
 			<div class="room-id">
-				<span class="online-kicker">Room</span>
 				<strong>{room.code}</strong>
 			</div>
 			<p class="room-status">{status}</p>
-			<button type="button" class="online-danger" onclick={leave}>Room verlassen</button>
+			<button type="button" class="online-danger" onclick={leave}>Raum verlassen</button>
 		</header>
 
 		<div class="layout">

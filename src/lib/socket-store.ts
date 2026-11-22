@@ -68,11 +68,13 @@ function connect() {
 
     newSocket.on('room:updated', (data) => {
         currentRoom.set(data.room);
+        // Zurück in der Lobby: altes Spiel verwerfen
+        if (data.room.status === 'waiting') gameState.set(null);
     });
 
     newSocket.on('room:kicked', () => {
         resetRoom();
-        errorMessage.set('Du wurdest vom Host aus dem Room entfernt.');
+        errorMessage.set('Du wurdest vom Host aus dem Raum entfernt.');
     });
 
     newSocket.on('room:error', (data) => {
@@ -157,6 +159,15 @@ function kickPlayer(targetPlayerId: string) {
     currentSocket.emit('room:kick', { playerId: targetPlayerId });
 }
 
+function backToLobby() {
+    const currentSocket = get(socket);
+    if (!currentSocket?.connected) {
+        errorMessage.set('❌ Nicht mit Server verbunden');
+        return;
+    }
+    currentSocket.emit('room:back-to-lobby');
+}
+
 function startGame(totalRounds: number, categoryIds: number[]) {
     const currentSocket = get(socket);
     if (!currentSocket?.connected) {
@@ -211,6 +222,7 @@ export const socketStore = {
     joinRoom,
     leaveRoom,
     kickPlayer,
+    backToLobby,
     startGame,
     sendChatMessage,
     vote,

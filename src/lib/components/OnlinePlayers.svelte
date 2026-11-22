@@ -12,7 +12,7 @@
 	const points = $derived(new Map($gameStateStore?.players.map((p) => [p.id, p.roundsWon]) ?? []));
 
 	function kick(id: string, name: string) {
-		if (confirm(`${name} wirklich aus dem Room entfernen?`)) socketStore.kickPlayer(id);
+		if (confirm(`${name} wirklich aus dem Raum entfernen?`)) socketStore.kickPlayer(id);
 	}
 </script>
 
@@ -40,8 +40,8 @@
 						<button
 							type="button"
 							class="kick"
-							title="Aus dem Room entfernen"
-							aria-label="{player.name} aus dem Room entfernen"
+							title="Aus dem Raum entfernen"
+							aria-label="{player.name} aus dem Raum entfernen"
 							onclick={() => kick(player.id, player.name)}
 						>
 							✕

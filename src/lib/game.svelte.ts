@@ -157,6 +157,18 @@ export class Game {
 		return this.start();
 	}
 
+	/** Zurück zur Einrichtung mit denselben Spielern, z. B. um Kategorien oder Runden zu ändern. */
+	backToSetup() {
+		this.players.forEach((p) => {
+			p.votes = 0;
+			p.roundsWon = 0;
+			p.votesTotal = 0;
+			p.voted = null;
+		});
+		this.round = 0;
+		this.phase = 'setup';
+	}
+
 	/** Zurück zur Startseite; der Spielstand wird dabei gelöscht. */
 	reset() {
 		this.players = [];

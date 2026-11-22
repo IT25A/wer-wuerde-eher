@@ -8,7 +8,6 @@
 	const isHost = $derived($currentRoomStore?.hostId === myId);
 	const voteCount = $derived(game?.votedPlayerIds.length ?? 0);
 	const playerCount = $derived(game?.players.length ?? 0);
-	const candidates = $derived(game?.players.filter((p) => p.id !== myId) ?? []);
 </script>
 
 {#if game}
@@ -19,10 +18,13 @@
 		{#if !hasVoted}
 			<p class="subtitle">Wähle eine Person</p>
 			<div class="vote-player-list">
-				{#each candidates as player (player.id)}
+				<!-- Wie im Hot Seat darf man auch für sich selbst stimmen. -->
+				{#each game.players as player (player.id)}
 					<button type="button" class="vote-btn" onclick={() => socketStore.vote(player.id)}>
 						<OnlineChip id={player.id} name={player.name} size="2.5rem" />
-						<span class="vote-name">{player.name}</span>
+						<span class="vote-name">
+							{player.name}{#if player.id === myId}<small> (du)</small>{/if}
+						</span>
 					</button>
 				{/each}
 			</div>
@@ -108,6 +110,12 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		font-size: 1.5rem;
+	}
+
+	.vote-name small {
+		margin-left: 0.3rem;
+		font-size: 1rem;
+		color: hsla(0, 0%, 100%, 0.6);
 	}
 
 	.voted {

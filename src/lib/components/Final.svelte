@@ -44,8 +44,8 @@
 	<button class="online-primary" onclick={playAgain} disabled={isStarting} id="play-again-btn">
 		{isStarting ? 'Fragen werden geladen …' : 'Nochmal mit denselben Spielern'}
 	</button>
-	<button class="online-secondary" onclick={() => game.reset()} id="new-game-btn">
-		Neues Spiel
+	<button class="online-secondary" onclick={() => game.backToSetup()} id="new-game-btn">
+		Einstellungen ändern
 	</button>
 </div>
 {#if error}

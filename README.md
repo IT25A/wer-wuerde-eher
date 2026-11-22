@@ -28,7 +28,7 @@ Auf der Startseite gibt es drei Modi:
 
 | Modus          | Für wen                                   | Kurz erklärt                                                                                                       |
 | -------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| **Online**     | Jeder spielt am eigenen Handy oder Laptop | Eine Person erstellt einen Room und teilt einen sechsstelligen Code, die anderen treten damit bei. Inklusive Chat. |
+| **Online**     | Jeder spielt am eigenen Handy oder Laptop | Eine Person erstellt einen Raum und teilt einen sechsstelligen Code, die anderen treten damit bei. Inklusive Chat. |
 | **Hot Seat**   | Alle sitzen zusammen an **einem** Gerät   | Das Gerät wird reihum weitergegeben, jeder stimmt geheim ab.                                                       |
 | **Nur Fragen** | Ohne Punkte, einfach zum Diskutieren      | Zeigt zufällige Fragen aus den gewählten Kategorien an.                                                            |
 
@@ -40,30 +40,31 @@ Alle drei Modi nutzen dieselben Fragen und Kategorien aus der Datenbank. Über d
 
 ### Online-Modus
 
-**Als Host (die Person, die den Room erstellt):**
+**Als Host (die Person, die den Raum erstellt):**
 
 1. Auf der Startseite **Online** wählen.
-2. Unter **Room erstellen** den eigenen Namen eingeben und auf **Room erstellen** klicken.
-3. Oben erscheint der **Room-Code** (z. B. `8XTS6V`). Diesen Code an die Mitspielenden schicken (Knopf **Code kopieren**).
+2. Unter **Raum erstellen** den eigenen Namen eingeben und auf **Raum erstellen** klicken.
+3. Oben erscheint der **Raum-Code** (z. B. `8XTS6V`). Diesen Code an die Mitspielenden schicken (Knopf **Code kopieren**).
 4. Kategorien ankreuzen und die Anzahl der Runden wählen.
-5. Sobald mindestens zwei Personen im Room sind: **Spiel starten**.
+5. Sobald mindestens zwei Personen im Raum sind: **Spiel starten**.
 6. Während des Spiels kann der Host
    - die Abstimmung vorzeitig beenden (**Abstimmung jetzt beenden**),
    - zur nächsten Runde wechseln (**Nächste Runde**),
-   - Mitspielende über das **✕** in der Spielerliste aus dem Room entfernen.
+   - Mitspielende über das **✕** in der Spielerliste aus dem Raum entfernen.
+7. Nach dem Endergebnis holt **Neues Spiel im selben Raum** alle zurück auf die Raum-Code-Seite. Der Raum bleibt offen, alle Spieler und der Chat bleiben erhalten. Kategorien und Runden können neu gewählt werden, und es dürfen auch neue Leute beitreten.
 
 **Als Mitspieler:in:**
 
 1. Auf der Startseite **Online** wählen.
-2. Auf **Beitreten** klicken, den Room-Code und den eigenen Namen eingeben, **Room beitreten**.
+2. Auf **Beitreten** klicken, den Raum-Code und den eigenen Namen eingeben, **Raum beitreten**.
 3. Warten, bis der Host das Spiel startet.
-4. Bei jeder Frage auf die Person klicken, die am ehesten passt. Für sich selbst kann man nicht stimmen.
+4. Bei jeder Frage auf die Person klicken, die am ehesten passt. Man kann auch für sich selbst stimmen.
 
 **Für alle:**
 
 - Rechts (auf dem Handy unten) stehen die **Spielerliste** und der **Chat**.
-- Mit **Room verlassen** oben rechts kann man jederzeit gehen, auch mitten im Spiel. Verlässt der Host den Room, wird automatisch die nächste Person Host.
-- In einen Room, in dem das Spiel schon läuft, kann niemand mehr beitreten.
+- Mit **Raum verlassen** oben rechts kann man jederzeit gehen, auch mitten im Spiel. Verlässt der Host den Raum, wird automatisch die nächste Person Host.
+- In einen Raum, in dem das Spiel schon läuft, kann niemand mehr beitreten. Nach dem Spiel, zurück auf der Raum-Code-Seite, geht das wieder.
 
 ### Hot Seat
 
@@ -71,7 +72,9 @@ Alle drei Modi nutzen dieselben Fragen und Kategorien aus der Datenbank. Über d
 2. Alle Namen nacheinander eintragen (**Hinzufügen**), mindestens zwei.
 3. Kategorien und Rundenzahl wählen, **Spiel starten**.
 4. Die App sagt jeweils an, wem das Gerät gegeben werden soll. Diese Person tippt auf **Weiter** und stimmt ab.
-5. Nach jeder Runde gibt es das Ergebnis, am Ende die Rangliste. Danach kann man mit denselben Personen nochmal spielen oder ein neues Spiel beginnen.
+5. Nach jeder Runde gibt es das Ergebnis, am Ende die Rangliste. Danach gibt es zwei Möglichkeiten:
+   - **Nochmal mit denselben Spielern** startet sofort ein neues Spiel mit denselben Einstellungen.
+   - **Einstellungen ändern** führt mit denselben Spielern zurück zur Einrichtung. Dort lassen sich Kategorien, Rundenzahl und Spieler ändern.
 
 ---
 
@@ -204,7 +207,7 @@ Ausführliche Anleitung der Plattform: https://github.com/IT25A/deploy-workflows
 | `src/lib/components/`     | Bausteine der Oberfläche (`Online*.svelte` für den Online-Modus, übrige für den Hot Seat)                                                            |
 | `src/lib/socket-store.ts` | Verbindung des Browsers zum Game-Server                                                                                                              |
 | `src/lib/server/`         | Datenbankzugriff (`database.ts`) und Fragenauswahl (`questions.ts`)                                                                                  |
-| `server/src/`             | Game-Server für den Online-Modus: Rooms, Spielablauf, Chat, Kick (`socket.ts`, `room-store.ts`, `game-store.ts`) sowie der Start der App (`prod.ts`) |
+| `server/src/`             | Game-Server für den Online-Modus: Räume, Spielablauf, Chat, Kick (`socket.ts`, `room-store.ts`, `game-store.ts`) sowie der Start der App (`prod.ts`) |
 | `shared/`                 | Typen und Farben, die Webseite und Server gemeinsam nutzen                                                                                           |
 | `data/Fragen.db`          | Die SQLite-Datenbank mit Fragen und Kategorien                                                                                                       |
 
