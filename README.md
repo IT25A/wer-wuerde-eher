@@ -18,7 +18,7 @@ Darüber hinaus gibt es ein einfaches _Content Management System_, welches einem
 
 ## Benötigte Software:
 
-- NodeJS + node package manager (npm)
+- [NodeJS](https://nodejs.org/en/download) + node package manager (npm)
 - [C++ Build Tools](https://learn.microsoft.com/de-de/cpp/build/vscpp-step-0-installation?view=msvc-170) (für betterSqlite 3)
 
 # Quickstart

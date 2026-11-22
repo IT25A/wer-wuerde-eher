@@ -3,6 +3,7 @@
 
 	const isLast = $derived(game.round >= game.totalRounds);
 	const maxVotes = $derived(Math.max(1, ...game.tally));
+	let playersByVotes = $derived(game.players.toSorted((a, b) => (b.votes ?? 0) - (a.votes ?? 0)));
 </script>
 
 <p class="muted result-round-label">
@@ -16,7 +17,7 @@
 </p>
 
 <ul class="vote-counts">
-	{#each game.players as p (p.name)}
+	{#each playersByVotes as p (p.name)}
 		<li>
 			<div class="result-votes">
 				<span>{p.name}: </span>
@@ -32,10 +33,10 @@
 <br />
 
 <details class="voting-details">
-	<summary>Wer hat wen gewählt?</summary>
+	<summary style="cursor: pointer">Wer hat wen gewählt?</summary>
 	<ul class="player-votes">
 		{#each game.players.toSorted((a, b) => (b.voted?.votes ?? 0) - (a.voted?.votes ?? 0)) as p (p.name)}
-			<li id="player-list">{p.name} → {p.voted?.name || 'Niemand'}</li>
+			<li class="player-list">{p.name} → {p.voted?.name || 'Niemand'}</li>
 		{/each}
 	</ul>
 </details>
@@ -96,7 +97,7 @@
 		justify-content: center;
 	}
 
-	#player-list {
+	.player-list {
 		display: flex;
 		flex-direction: row;
 		flex-wrap: wrap;
@@ -104,7 +105,7 @@
 		list-style: none;
 		padding: 0;
 		margin: 0;
-		color: var(--color30);
+		color: var(--color10);
 	}
 
 	#next-round-btn {
