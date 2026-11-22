@@ -25,6 +25,7 @@ export interface ClientToServerEvents {
     // Game
     'game:start': (data: {
         totalRounds: number;
+        categories: string[];
     }) => void;
 
     'game:vote': (data: {
@@ -32,6 +33,7 @@ export interface ClientToServerEvents {
     }) => void;
 
     'game:next-round': () => void;
+    'game:abort-voting': () => void;
 
 }
 

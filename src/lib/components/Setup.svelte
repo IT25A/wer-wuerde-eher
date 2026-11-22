@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { game, MAX_PLAYERS, MIN_PLAYERS, ROUND_OPTIONS } from '$lib/game.svelte';
-	import { questions } from '$lib/questions';
+	import { getQuestionsByCategories, QUESTION_CATEGORIES } from '$lib/questions';
 
 	let name = $state('');
 	let error = $state('');
@@ -64,7 +64,7 @@
 <fieldset class="mt-6">
 	<legend class="muted mb-2">Anzahl Runden</legend>
 	<div class="flex gap-2">
-		{#each ROUND_OPTIONS.filter((n) => n <= questions.length) as option (option)}
+		{#each ROUND_OPTIONS.filter((n) => n <= getQuestionsByCategories(game.selectedCategories).length) as option (option)}
 			<label
 				class="flex-1 cursor-pointer rounded-xl border border-white/15 bg-white/8 py-3 text-center text-lg font-semibold transition hover:bg-white/15 has-checked:border-transparent has-checked:bg-cyan-300 has-checked:text-slate-950 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-cyan-300"
 			>
@@ -76,6 +76,25 @@
 					bind:group={game.totalRounds}
 				/>
 				{option}
+			</label>
+		{/each}
+	</div>
+</fieldset>
+
+<fieldset class="mt-6">
+	<legend class="muted mb-2">Kategorien</legend>
+	<div class="flex flex-wrap gap-2">
+		{#each QUESTION_CATEGORIES as category (category)}
+			<label
+				class="cursor-pointer rounded-xl border border-white/15 bg-white/8 px-3 py-2 transition has-checked:border-cyan-300 has-checked:bg-cyan-300/20"
+			>
+				<input
+					class="mr-2"
+					type="checkbox"
+					value={category}
+					bind:group={game.selectedCategories}
+				/>
+				{category}
 			</label>
 		{/each}
 	</div>

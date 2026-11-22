@@ -1,6 +1,7 @@
 <script lang="ts">
     import { socketStore, currentRoomStore, errorMessageStore, socketRef } from '$lib/socket-store';
-    import { MIN_PLAYERS } from '$lib/game.svelte';
+    import { MIN_PLAYERS, ROUND_OPTIONS } from '$lib/game.svelte';
+    import { getQuestionsByCategories, QUESTION_CATEGORIES, type QuestionCategory } from '$lib/questions';
     import type { Room } from '../../../shared/room-types';
 
     let playerName = $state('');
@@ -8,6 +9,8 @@
     let isCreating = $state(true);
     let currentRoom = $state<Room | null>(null);
     let errorMessage = $state<string>('');
+    let totalRounds = $state(10);
+    let selectedCategories = $state<QuestionCategory[]>([...QUESTION_CATEGORIES]);
 
     currentRoomStore.subscribe((value) => {
         currentRoom = value;
@@ -116,11 +119,43 @@
             {/each}
         </ul>
 
+        {#if currentRoom.hostId === socketRef.get()?.id}
+            <fieldset class="mt-6">
+                <legend class="muted mb-2">Anzahl Runden</legend>
+                <div class="flex gap-2">
+                    {#each ROUND_OPTIONS.filter((n) => n <= getQuestionsByCategories(selectedCategories).length) as option (option)}
+                        <label
+                            class="flex-1 cursor-pointer rounded-xl border border-white/15 bg-white/8 py-3 text-center text-lg font-semibold transition has-checked:border-transparent has-checked:bg-cyan-300 has-checked:text-slate-950"
+                        >
+                            <input class="sr-only" type="radio" name="online-rounds" value={option} bind:group={totalRounds} />
+                            {option}
+                        </label>
+                    {/each}
+                </div>
+            </fieldset>
+
+            <fieldset class="mt-4">
+                <legend class="muted mb-2">Kategorien</legend>
+                <div class="flex flex-wrap gap-2">
+                    {#each QUESTION_CATEGORIES as category (category)}
+                        <label class="cursor-pointer rounded-xl border border-white/15 bg-white/8 px-3 py-2 has-checked:border-cyan-300 has-checked:bg-cyan-300/20">
+                            <input class="mr-2" type="checkbox" value={category} bind:group={selectedCategories} />
+                            {category}
+                        </label>
+                    {/each}
+                </div>
+            </fieldset>
+        {/if}
+
         {#if currentRoom.hostId === socketRef.get()?.id && currentRoom.players.length >= MIN_PLAYERS}
             <button
                 class="btn btn-primary mt-4 w-full"
+                disabled={selectedCategories.length === 0}
                 onclick={() => {
-                    socketRef.get()?.emit('game:start', { totalRounds: 10 });
+                    socketRef.get()?.emit('game:start', {
+                        totalRounds,
+                        categories: selectedCategories
+                    });
                 }}
             >
                 Spiel starten

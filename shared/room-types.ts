@@ -42,6 +42,7 @@ export interface GameState {
     players: GamePlayer[];
     voterIndex: number;
     voterId: string;
+    votedPlayerIds: string[];
 }
 
 // Informationen über einen gesamten Raum

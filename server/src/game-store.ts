@@ -1,7 +1,8 @@
 import type { GameState, GamePlayer } from '../../shared/room-types';
-import { questions } from '../../src/lib/questions';
+import { getQuestionsByCategories, questions, type QuestionCategory } from '../../src/lib/questions';
 
 const games = new Map<string, GameState>();
+const decks = new Map<string, string[]>();
 
 function shuffle<T>(items: T[]): T[] {
     const copy = [...items];
@@ -12,7 +13,13 @@ function shuffle<T>(items: T[]): T[] {
     return copy;
 }
 
-export function initGame(roomCode: string, playerIds: string[], playerNames: string[], totalRoundsParam?: number): GameState | null {
+export function initGame(
+    roomCode: string,
+    playerIds: string[],
+    playerNames: string[],
+    totalRoundsParam?: number,
+    categoriesParam?: string[]
+): GameState | null {
     const minPlayers = 2;
     if (playerIds.length < minPlayers) {
         console.log(`Nicht genug Spieler zum Starten: ${playerIds.length}/${minPlayers}`);
@@ -27,8 +34,12 @@ export function initGame(roomCode: string, playerIds: string[], playerNames: str
         votes: 0
     }));
 
-    const deck = shuffle(questions);
-    const totalRounds = totalRoundsParam ? Math.min(totalRoundsParam, deck.length) : Math.min(10, deck.length);
+    const categories = (categoriesParam ?? []) as QuestionCategory[];
+    const availableQuestions =
+        categories.length > 0 ? getQuestionsByCategories(categories) : questions;
+    const deck = shuffle(availableQuestions).slice(0, Math.min(totalRoundsParam ?? 10, availableQuestions.length));
+    const totalRounds = deck.length;
+    decks.set(roomCode, deck);
 
     const gameState: GameState = {
         phase: 'voting',
@@ -37,7 +48,8 @@ export function initGame(roomCode: string, playerIds: string[], playerNames: str
         question: deck[0],
         players,
         voterIndex: 0,
-        voterId: players[0].id
+        voterId: '',
+        votedPlayerIds: []
     };
 
     games.set(roomCode, gameState);
@@ -56,8 +68,24 @@ export function processVote(roomCode: string, voterId: string, targetId: string)
         return null;
     }
 
-    if (gameState.voterId !== voterId) {
-        console.log(`Spieler ${voterId} ist nicht dran, zu voten`);
+    if (gameState.phase !== 'voting') {
+        console.log(`Für Room ${roomCode} läuft gerade keine Abstimmung`);
+        return null;
+    }
+
+    if (gameState.votedPlayerIds.includes(voterId)) {
+        console.log(`Spieler ${voterId} hat bereits gevotet`);
+        return null;
+    }
+
+    if (voterId === targetId) {
+        console.log(`Spieler ${voterId} darf nicht für sich selbst voten`);
+        return null;
+    }
+
+    const voterExists = gameState.players.some((p) => p.id === voterId);
+    if (!voterExists) {
+        console.log(`Ungültiger voterId: ${voterId}`);
         return null;
     }
 
@@ -69,21 +97,32 @@ export function processVote(roomCode: string, voterId: string, targetId: string)
 
     targetPlayer.votes++;
     targetPlayer.votesTotal++;
+    gameState.votedPlayerIds.push(voterId);
 
-    if (gameState.voterIndex + 1 < gameState.players.length) {
-        gameState.voterIndex++;
-        gameState.voterId = gameState.players[gameState.voterIndex].id;
-    } else {
-        const maxVotes = Math.max(...gameState.players.map((p) => p.votes));
-        gameState.players.forEach((p) => {
-            if (p.votes === maxVotes) {
-                p.roundsWon++;
-            }
-        });
-        gameState.phase = 'result';
+    if (gameState.votedPlayerIds.length >= gameState.players.length) {
+        finishVoting(gameState);
     }
 
     return gameState;
+}
+
+export function abortVoting(roomCode: string): GameState | null {
+    const gameState = games.get(roomCode);
+    if (!gameState || gameState.phase !== 'voting') {
+        return null;
+    }
+    finishVoting(gameState);
+    return gameState;
+}
+
+function finishVoting(gameState: GameState): void {
+    const maxVotes = Math.max(0, ...gameState.players.map((p) => p.votes));
+    gameState.players.forEach((p) => {
+        if (maxVotes > 0 && p.votes === maxVotes) {
+            p.roundsWon++;
+        }
+    });
+    gameState.phase = 'result';
 }
 
 export function nextRound(roomCode: string): GameState | null {
@@ -101,13 +140,17 @@ export function nextRound(roomCode: string): GameState | null {
     gameState.round++;
     gameState.phase = 'voting';
     gameState.voterIndex = 0;
-    gameState.voterId = gameState.players[0].id;
+    gameState.voterId = '';
+    gameState.votedPlayerIds = [];
 
     gameState.players.forEach((p) => {
         p.votes = 0;
     });
 
-    const deck = shuffle(questions);
+    const deck = decks.get(roomCode);
+    if (!deck) {
+        return null;
+    }
     gameState.question = deck[gameState.round - 1];
 
     console.log(`Nächste Runde gestartet für Room ${roomCode}: Runde ${gameState.round}`);
@@ -116,5 +159,6 @@ export function nextRound(roomCode: string): GameState | null {
 
 export function deleteGame(roomCode: string): void {
     games.delete(roomCode);
+    decks.delete(roomCode);
     console.log(`Spiel gelöscht für Room ${roomCode}`);
 }

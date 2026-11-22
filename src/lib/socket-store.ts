@@ -94,6 +94,7 @@ function connect() {
     });
 
     newSocket.on('game:started', (data) => {
+        currentRoom.update((room) => (room ? { ...room, status: 'playing' } : room));
         gameState.set(data.state);
         errorMessage.set('');
         console.log('🎮 Spiel gestartet');
@@ -184,6 +185,15 @@ function nextRound() {
     currentSocket.emit('game:next-round');
 }
 
+function abortVoting() {
+    const currentSocket = get(socket);
+    if (!currentSocket?.connected) {
+        errorMessage.set('❌ Nicht mit Server verbunden');
+        return;
+    }
+    currentSocket.emit('game:abort-voting');
+}
+
 export const socketStore = {
     subscribe: socket.subscribe,
     set: socket.set,
@@ -194,7 +204,8 @@ export const socketStore = {
     leaveRoom,
     sendChatMessage,
     vote,
-    nextRound
+    nextRound,
+    abortVoting
 };
 
 export const socketRef = {

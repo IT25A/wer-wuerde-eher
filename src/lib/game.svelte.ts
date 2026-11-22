@@ -1,4 +1,4 @@
-import { questions } from './questions';
+import { getQuestionsByCategories, QUESTION_CATEGORIES, questions, type QuestionCategory } from './questions';
 
 // Ablauf eines Spiels (Hot Seat, ein Gerät wird reihum weitergegeben):
 // setup -> pass -> vote -> (pass -> vote)* -> result -> pass ... -> final
@@ -29,6 +29,7 @@ export class Game {
 	phase = $state<Phase>('setup');
 	players = $state<Player[]>([]);
 	totalRounds = $state(10);
+	selectedCategories = $state<QuestionCategory[]>([...QUESTION_CATEGORIES]);
 	round = $state(0);
 	// Gemischte Fragen: so wird jede Frage pro Spiel höchstens einmal gestellt.
 	deck = $state<string[]>([]);
@@ -51,7 +52,11 @@ export class Game {
 			}))
 			.sort((a, b) => b.roundsWon - a.roundsWon || b.votesReceived - a.votesReceived)
 	);
-	canStart = $derived(this.players.length >= MIN_PLAYERS);
+	canStart = $derived(
+		this.players.length >= MIN_PLAYERS &&
+		this.selectedCategories.length > 0 &&
+		getQuestionsByCategories(this.selectedCategories).length > 0
+	);
 
 	/** Gibt eine Fehlermeldung zurück, oder null bei Erfolg. */
 	addPlayer(rawName: string): string | null {
@@ -78,8 +83,9 @@ removePlayer(index: number | Player) {
 
 	start() {
 		if (!this.canStart) return;
-		this.totalRounds = Math.min(this.totalRounds, questions.length);
-		this.deck = shuffle(questions).slice(0, this.totalRounds);
+		const availableQuestions = getQuestionsByCategories(this.selectedCategories);
+		this.totalRounds = Math.min(this.totalRounds, availableQuestions.length);
+		this.deck = shuffle(availableQuestions).slice(0, this.totalRounds);
 		this.round = 1;
 		this.startRound();
 	}

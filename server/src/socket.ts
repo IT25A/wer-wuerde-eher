@@ -16,7 +16,8 @@ import {
     initGame,
     getGameState,
     processVote,
-    nextRound
+    nextRound,
+    abortVoting
 } from './game-store';
 
 // Unser Socket.IO-Server kennt jetzt unsere Event-Typen.
@@ -185,7 +186,13 @@ export function registerSocketHandlers(io: GameServer): void {
             }
             const playerIds = room.players.map((p) => p.id);
             const playerNames = room.players.map((p) => p.name);
-            const gameState = initGame(roomCode, playerIds, playerNames, data.totalRounds);
+            const gameState = initGame(
+                roomCode,
+                playerIds,
+                playerNames,
+                data.totalRounds,
+                data.categories
+            );
             if (!gameState) {
                 socket.emit('game:error', { message: 'Spiel konnte nicht gestartet werden (min. 2 Spieler benötigt)' });
                 return;
@@ -226,6 +233,29 @@ export function registerSocketHandlers(io: GameServer): void {
             const gameState = nextRound(roomCode);
             if (!gameState) {
                 socket.emit('game:error', { message: 'Nächste Runde konnte nicht gestartet werden' });
+                return;
+            }
+            io.to(roomCode).emit('game:state-updated', { state: gameState });
+        });
+
+        socket.on('game:abort-voting', () => {
+            const roomCode = typedSocket.data.roomCode;
+            if (!roomCode) {
+                socket.emit('game:error', { message: 'Du bist in keinem Room' });
+                return;
+            }
+            const room = getRoom(roomCode);
+            if (!room) {
+                socket.emit('game:error', { message: 'Room existiert nicht' });
+                return;
+            }
+            if (room.hostId !== socket.id) {
+                socket.emit('game:error', { message: 'Nur der Host darf die Abstimmung beenden' });
+                return;
+            }
+            const gameState = abortVoting(roomCode);
+            if (!gameState) {
+                socket.emit('game:error', { message: 'Aktuell läuft keine Abstimmung' });
                 return;
             }
             io.to(roomCode).emit('game:state-updated', { state: gameState });

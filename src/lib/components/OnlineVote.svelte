@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { socketStore, gameStateStore, chatMessagesStore, errorMessageStore, socketRef } from '$lib/socket-store';
-    import type { ChatMessage, GameState } from '../../../shared/room-types';
+    import { socketStore, gameStateStore, chatMessagesStore, errorMessageStore, socketRef, currentRoomStore } from '$lib/socket-store';
+    import type { ChatMessage, GameState, Room } from '../../../shared/room-types';
 
     let newMessage = $state('');
-    let chatContainer: HTMLElement;
     let gameState = $state<GameState | null>(null);
     let chatMessages = $state<ChatMessage[]>([]);
     let errorMessage = $state<string>('');
+    let currentRoom = $state<Room | null>(null);
 
     gameStateStore.subscribe((value) => {
         gameState = value;
@@ -20,18 +20,19 @@
         errorMessage = value;
     });
 
-    const isMyTurn = $derived(
-        gameState?.voterId === socketRef.get()?.id
-    );
+    currentRoomStore.subscribe((value) => {
+        currentRoom = value;
+    });
 
-    const currentVoterName = $derived(
-        gameState?.players.find((p) => p.id === gameState?.voterId)?.name
-    );
+    const myId = $derived(socketRef.get()?.id);
+    const hasVoted = $derived(myId ? gameState?.votedPlayerIds.includes(myId) ?? false : false);
+    const isHost = $derived(currentRoom?.hostId === myId);
+    const voteCount = $derived(gameState?.votedPlayerIds.length ?? 0);
 </script>
 
 <p class="muted text-center text-sm tracking-widest uppercase">
     Runde {gameState?.round} von {gameState?.totalRounds} ·
-    {isMyTurn ? 'Du bist dran' : `${currentVoterName} ist dran`}
+    {voteCount} von {gameState?.players.length} haben gevotet
 </p>
 <h1 class="mt-4 text-center text-3xl font-extrabold">
     Wer würde eher <span
@@ -40,10 +41,10 @@
     >?
 </h1>
 
-{#if isMyTurn}
+{#if !hasVoted}
     <div class="mt-8 grid gap-3">
         {#each gameState?.players as player (player.id)}
-            {#if player.id !== socketRef.get()?.id}
+            {#if player.id !== myId}
                 <button
                     class="btn"
                     onclick={() => socketStore.vote(player.id)}
@@ -54,14 +55,19 @@
         {/each}
     </div>
 {:else}
-    <p class="muted mt-8 text-center">Warte auf {currentVoterName}...</p>
+    <p class="muted mt-8 text-center">Deine Stimme ist abgegeben. Warte auf die anderen Spieler...</p>
+{/if}
+
+{#if isHost}
+    <button class="btn mt-4 w-full" onclick={() => socketStore.abortVoting()}>
+        Abstimmung jetzt beenden
+    </button>
 {/if}
 
 <section class="card mt-8 p-5">
     <h3 class="text-lg font-bold mb-4">Chat</h3>
     <div
         class="overflow-y-auto space-y-3 mb-4 p-3 bg-black/25 rounded-xl max-h-60"
-        bind:this={chatContainer}
     >
         {#if chatMessages.length === 0}
             <p class="muted text-sm text-center">Noch keine Nachrichten</p>
