@@ -1,9 +1,42 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { game, MAX_PLAYERS, MIN_PLAYERS, ROUND_OPTIONS } from '$lib/game.svelte';
-	import { getQuestionsByCategories, QUESTION_CATEGORIES } from '$lib/questions';
 
+	type Category = { id: number; name: string; description: string | null; questionCount: number };
+	let categories = $state<Category[]>([]);
+	let categoriesError = $state('');
+	import PlayerChip from '$lib/components/playerChip.svelte';
 	let name = $state('');
-	let error = $state('');
+	let error: string | null = $state('');
+	let isStarting = $state(false);
+	let selectedQuestionCount = $derived(
+		categories
+			.filter((category) => game.selectedCategoryIds.includes(category.id))
+			.reduce((total, category) => total + category.questionCount, 0)
+	);
+
+	async function loadCategories() {
+		try {
+			const response = await fetch('/api/categories');
+			if (!response.ok) throw new Error('Kategorien konnten nicht geladen werden.');
+			categories = (await response.json()) as Category[];
+			game.selectedCategoryIds = game.selectedCategoryIds.filter((id) =>
+				categories.some((category) => category.id === id)
+			);
+		} catch {
+			categoriesError = 'Kategorien konnten nicht geladen werden.';
+		}
+	}
+
+	onMount(() => {
+		void loadCategories();
+	});
+
+	async function startGame() {
+		isStarting = true;
+		error = await game.start();
+		isStarting = false;
+	}
 
 	function add(event: SubmitEvent) {
 		event.preventDefault();
@@ -12,94 +45,208 @@
 	}
 </script>
 
-<div class="text-center">
-	<h1
-		class="bg-linear-to-r from-violet-300 via-blue-300 to-cyan-300 bg-clip-text text-5xl font-extrabold text-transparent"
-	>
-		Wer würde eher?
-	</h1>
-	<p class="muted mt-3">
+<div class="setup-head">
+	<h1 class="title">Wer würde eher?</h1>
+	<p class="subtitle">
 		Alle spielen an einem Gerät. Tragt eure Namen ein, danach wird das Gerät reihum weitergegeben.
 	</p>
 </div>
 
-<section class="card mt-8 p-5">
-	<form class="flex gap-2" onsubmit={add}>
+<section id="setup-players">
+	<form id="add-player" onsubmit={add}>
 		<input
-			class="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/25 px-4 py-3 text-lg text-white placeholder:text-indigo-300/50 focus:border-cyan-300 focus:outline-none"
+			class="glow-box"
 			placeholder="Name"
 			maxlength="20"
 			aria-label="Name des Spielers"
 			bind:value={name}
 		/>
-		<button class="btn" type="submit" disabled={game.players.length >= MAX_PLAYERS}>
+		<button
+			class="glow-box"
+			id="add-player-btn"
+			type="submit"
+			disabled={game.players.length >= MAX_PLAYERS}
+		>
 			Hinzufügen
 		</button>
 	</form>
 	{#if error}
-		<p class="mt-2 text-rose-300" role="alert">{error}</p>
+		<p class="error" role="alert">{error}</p>
 	{/if}
 
 	{#if game.players.length}
-		<ul class="mt-4 flex flex-wrap gap-2">
+		<ul id="player-list">
 			{#each game.players as p (p.name)}
-				<li
-					class="flex items-center gap-2 rounded-full bg-linear-to-r from-violet-500/30 to-cyan-400/30 py-1.5 pr-2 pl-4 ring-1 ring-white/15"
-				>
-					<span class="font-semibold">{p.name}</span>
-					<button
-						class="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-black/20 text-sm hover:bg-rose-500"
-						aria-label="{p} entfernen"
-						onclick={() => game.removePlayer(p)}>✕</button
-					>
+				<li>
+					<PlayerChip player={p} allowRemove={true} />
 				</li>
 			{/each}
 		</ul>
 	{/if}
-	<p class="muted mt-3 text-sm">
+	<p class="muted setup-player-count">
 		{game.players.length} / {MAX_PLAYERS} Spieler (mindestens {MIN_PLAYERS})
 	</p>
 </section>
 
 <fieldset class="mt-6">
-	<legend class="muted mb-2">Anzahl Runden</legend>
-	<div class="flex gap-2">
-		{#each ROUND_OPTIONS.filter((n) => n <= getQuestionsByCategories(game.selectedCategories).length) as option (option)}
-			<label
-				class="flex-1 cursor-pointer rounded-xl border border-white/15 bg-white/8 py-3 text-center text-lg font-semibold transition hover:bg-white/15 has-checked:border-transparent has-checked:bg-cyan-300 has-checked:text-slate-950 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-cyan-300"
-			>
-				<input
-					class="sr-only"
-					type="radio"
-					name="rounds"
-					value={option}
-					bind:group={game.totalRounds}
-				/>
-				{option}
-			</label>
-		{/each}
-	</div>
-</fieldset>
-
-<fieldset class="mt-6">
 	<legend class="muted mb-2">Kategorien</legend>
-	<div class="flex flex-wrap gap-2">
-		{#each QUESTION_CATEGORIES as category (category)}
-			<label
-				class="cursor-pointer rounded-xl border border-white/15 bg-white/8 px-3 py-2 transition has-checked:border-cyan-300 has-checked:bg-cyan-300/20"
-			>
+	{#if categoriesError}
+		<p class="text-rose-300" role="alert">{categoriesError}</p>
+	{:else if categories.length === 0}
+		<p class="muted">Kategorien werden geladen …</p>
+	{/if}
+	<div class="grid gap-3 sm:grid-cols-2">
+		{#each categories as category (category.id)}
+			<label class="category-label">
 				<input
-					class="mr-2"
+					class="mt-1 accent-cyan-300"
 					type="checkbox"
-					value={category}
-					bind:group={game.selectedCategories}
+					checked={game.selectedCategoryIds.includes(category.id)}
+					onchange={() => game.toggleCategory(category.id)}
 				/>
-				{category}
+				<span>
+					<span class="category-name" title={category.description}>
+						{category.name}
+					</span>
+				</span>
 			</label>
 		{/each}
 	</div>
+	{#if game.selectedCategoryIds.length === 0}
+		<p class="mt-2 text-rose-300" role="alert">Wählt mindestens eine Kategorie aus.</p>
+	{/if}
 </fieldset>
 
-<button class="btn btn-primary mt-8 w-full" disabled={!game.canStart} onclick={() => game.start()}>
-	Spiel starten
+<fieldset id="rounds">
+	<legend>Anzahl Runden</legend>
+
+	{#each ROUND_OPTIONS.filter((n) => n <= selectedQuestionCount) as option (option)}
+		<label class="round-option">
+			<input
+				class="round-input"
+				type="radio"
+				name="rounds"
+				value={option}
+				bind:group={game.totalRounds}
+			/>
+			{option}
+		</label>
+	{/each}
+	<!-- #TODO: Add custom round option -->
+</fieldset>
+
+<button
+	class="start-btn"
+	id="start-btn"
+	disabled={!game.canStart ||
+		game.selectedCategoryIds.length === 0 ||
+		categories.length === 0 ||
+		isStarting}
+	onclick={startGame}
+>
+	{isStarting ? 'Fragen werden geladen …' : 'Spiel starten'}
 </button>
+{#if error}
+	<p class="error-text" role="alert">{error}</p>
+{/if}
+
+<style>
+	p {
+		text-align: center;
+	}
+	.subtitle {
+		color: var(--color20);
+	}
+	#setup-players {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		width: 100%;
+		margin: 1rem 0;
+	}
+	#add-player {
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		gap: 1rem;
+		width: 100%;
+	}
+	#add-player button,
+	input {
+		font-size: 1.25rem;
+		padding: 0.25rem 0.5rem;
+	}
+	#add-player-btn {
+		background: var(--color30);
+	}
+
+	#player-list {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	/* .player-chip{
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: .5rem;
+		background: var(--color20dark);
+		text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+		padding: .25rem .5rem;
+		border-radius: .25rem;
+	} */
+
+	#rounds {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		margin: 0;
+		border-radius: 0.5rem;
+	}
+	.round-option {
+		display: inline-flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		aspect-ratio: 1/1;
+		height: 3rem;
+		font-size: 1.5rem;
+		padding: 0.25rem;
+		border-radius: 10%;
+		margin: 0.25rem;
+		background: var(--color70light);
+		cursor: pointer;
+		gap: 0.5rem;
+		transition:
+			background 0.1s ease,
+			transform 0.1s ease-out;
+	}
+	.round-option:has(input:checked) {
+		background: var(--color20dark);
+	}
+	.round-option:hover {
+		background: var(--color20);
+		transform: scale(1.05);
+	}
+	.round-option:active {
+		transform: scale(0.98);
+	}
+	.round-option input {
+		opacity: 0;
+		position: absolute;
+		width: 0;
+		height: 0;
+	}
+
+	#start-btn {
+		font-size: 1.5rem;
+		padding: 0.25rem 2rem;
+		background: var(--color30);
+	}
+</style>

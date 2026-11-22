@@ -1,12 +1,11 @@
-import { getQuestionsByCategories, QUESTION_CATEGORIES, questions, type QuestionCategory } from './questions';
-
-// Ablauf eines Spiels (Hot Seat, ein Gerät wird reihum weitergegeben):
-// setup -> pass -> vote -> (pass -> vote)* -> result -> pass ... -> final
+import { goto } from '$app/navigation';
+import { resolve } from '$app/paths';
+import { assignRandomColor } from './playerColors';
 export type Phase = 'setup' | 'pass' | 'vote' | 'result' | 'final';
 
 export const MIN_PLAYERS = 2;
-export const MAX_PLAYERS = 10;
-export const ROUND_OPTIONS = [5, 10, 15];
+export const MAX_PLAYERS = 20;
+export const ROUND_OPTIONS = [5, 10, 15, 20];
 
 function shuffle<T>(items: T[]): T[] {
 	const copy = [...items];
@@ -23,19 +22,17 @@ export type Player = {
 	votesTotal: number;
 	votes: number;
 	voted: Player | null;
+	color?: string;
 }
 
 export class Game {
 	phase = $state<Phase>('setup');
 	players = $state<Player[]>([]);
 	totalRounds = $state(10);
-	selectedCategories = $state<QuestionCategory[]>([...QUESTION_CATEGORIES]);
 	round = $state(0);
-	// Gemischte Fragen: so wird jede Frage pro Spiel höchstens einmal gestellt.
 	deck = $state<string[]>([]);
-	// Wer gerade abstimmt (Index in players)
+	selectedCategoryIds = $state<number[]>([1, 2]);
 	voterIndex = $state(0);
-	// Wie oft ein Spieler in einer Runde am häufigsten gewählt wurde
 	question = $derived(this.deck[this.round - 1] ?? '');
 	voter = $derived(this.players[this.voterIndex] ?? '');
 	tally = $derived(this.players.map((p) => p.votes));
@@ -52,13 +49,16 @@ export class Game {
 			}))
 			.sort((a, b) => b.roundsWon - a.roundsWon || b.votesReceived - a.votesReceived)
 	);
-	canStart = $derived(
-		this.players.length >= MIN_PLAYERS &&
-		this.selectedCategories.length > 0 &&
-		getQuestionsByCategories(this.selectedCategories).length > 0
-	);
+	canStart = $derived(this.players.length >= MIN_PLAYERS);
 
-	/** Gibt eine Fehlermeldung zurück, oder null bei Erfolg. */
+	toggleCategory(categoryId: number) {
+		if (this.selectedCategoryIds.includes(categoryId)) {
+			this.selectedCategoryIds = this.selectedCategoryIds.filter((id) => id !== categoryId);
+		} else {
+			this.selectedCategoryIds = [...this.selectedCategoryIds, categoryId];
+		}
+	}
+
 	addPlayer(rawName: string): string | null {
 		const name = rawName.trim();
 		if (!name) return 'Bitte einen Namen eingeben.';
@@ -66,28 +66,46 @@ export class Game {
 		if (this.players.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
 			return 'Diesen Namen gibt es schon.';
 		}
-		const player:Player = {name, roundsWon: 0, votesTotal: 0, votes: 0, voted: null};
+		const player: Player = { name, roundsWon: 0, votesTotal: 0, votes: 0, voted: null };
+		assignRandomColor(player);
 		this.players.push(player);
 		return null;
 	}
 
-removePlayer(index: number | Player) {
-    const i = typeof index === "number"
-        ? index
-        : this.players.indexOf(index);
+	removePlayer(index: number | Player) {
+		const i = typeof index === "number"
+			? index
+			: this.players.indexOf(index);
 
-    if (i !== -1) {
-        this.players.splice(i, 1);
-    }
-}
+		if (i !== -1) {
+			this.players.splice(i, 1);
+		}
+	}
 
-	start() {
-		if (!this.canStart) return;
-		const availableQuestions = getQuestionsByCategories(this.selectedCategories);
-		this.totalRounds = Math.min(this.totalRounds, availableQuestions.length);
-		this.deck = shuffle(availableQuestions).slice(0, this.totalRounds);
+	async start(): Promise<string | null> {
+		if (!this.canStart) return 'Mindestens zwei Spieler werden benötigt.';
+		try {
+			const response = await fetch('/api/game/questions', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					categoryIds: this.selectedCategoryIds,
+					count: this.totalRounds
+				})
+			});
+			const result: { questions?: { questionText: string }[]; error?: string } =
+				await response.json();
+			if (!response.ok || !result.questions?.length) {
+				return result.error ?? 'Fragen konnten nicht geladen werden.';
+			}
+			this.deck = result.questions.map((question) => question.questionText);
+			this.totalRounds = this.deck.length;
+		} catch {
+			return 'Fragen konnten nicht geladen werden. Bitte prüft die Verbindung.';
+		}
 		this.round = 1;
 		this.startRound();
+		return null;
 	}
 
 	private startRound() {
@@ -95,7 +113,6 @@ removePlayer(index: number | Player) {
 		this.phase = 'pass';
 	}
 
-	/** Der Spieler am Gerät hat bestätigt, dass er es ist. */
 	reveal() {
 		this.phase = 'vote';
 	}
@@ -131,20 +148,20 @@ removePlayer(index: number | Player) {
 		this.startRound();
 	}
 
-	/** Neue Runde mit denselben Spielern. */
-	playAgain() {
+	async playAgain(): Promise<string | null> {
 		this.players.forEach((p) => {
 			p.votes = 0;
 			p.roundsWon = 0;
 			p.votesTotal = 0;
 		});
-		this.start();
+		return this.start();
 	}
 
-	/** Zurück zum Anfang, alles löschen. */
+	/** Zurück zur Startseite; der Spielstand wird dabei gelöscht. */
 	reset() {
 		this.players = [];
 		this.phase = 'setup';
+		goto(resolve('/'));
 	}
 }
 

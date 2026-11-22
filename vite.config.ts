@@ -1,11 +1,18 @@
-import tailwindcss from '@tailwindcss/vite';
 import adapter from '@sveltejs/adapter-auto';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin, type ViteDevServer } from 'vite';
+import { attachWebSocket } from './src/lib/server/ws-room.ts';
+
+const webSocketDev: Plugin = {
+	name: 'websocket-dev',
+	configureServer(server: ViteDevServer) {
+		if (server.httpServer) attachWebSocket(server.httpServer);
+	}
+};
 
 export default defineConfig({
 	plugins: [
-		tailwindcss(),
+		webSocketDev,
 		sveltekit({
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.

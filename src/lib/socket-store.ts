@@ -21,7 +21,8 @@ function connect() {
 
     const protocol = window.location.protocol;
     const hostname = window.location.hostname;
-    const socketUrl = `${protocol === 'https:' ? 'https' : 'http'}://${hostname}:3001`;
+    const socketPort = import.meta.env.VITE_SOCKET_PORT ?? '3001';
+    const socketUrl = `${protocol === 'https:' ? 'https' : 'http'}://${hostname}:${socketPort}`;
 
     console.log('Verbinde zu Socket.IO Server:', socketUrl);
 

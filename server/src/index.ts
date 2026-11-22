@@ -15,7 +15,9 @@ const httpServer = createServer();
 // Socket.IO-Server erstellen
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
     cors: {
-        origin: 'http://localhost:5173',
+        origin: process.env.CLIENT_ORIGIN
+            ? process.env.CLIENT_ORIGIN.split(',').map((origin) => origin.trim())
+            : true,
         methods: ['GET', 'POST']
     }
 });
@@ -24,8 +26,9 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
 registerSocketHandlers(io);
 
 // Server starten
-const PORT = 3001;
+const PORT = Number(process.env.SOCKET_PORT ?? 3001);
+const HOST = process.env.SOCKET_HOST ?? '0.0.0.0';
 
-httpServer.listen(PORT, () => {
-    console.log(`Game Server läuft auf Port ${PORT}`);
+httpServer.listen(PORT, HOST, () => {
+    console.log(`Game Server läuft auf http://${HOST}:${PORT}`);
 });

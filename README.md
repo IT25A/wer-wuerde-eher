@@ -1,42 +1,105 @@
-# sv
+# Wer würde eher?
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Lokales Multiplayer-Spiel mit einer SvelteKit-Webseite und einem Socket.IO-Server.
 
-## Creating a project
+## Voraussetzungen
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Node.js 20 oder neuer
+- npm
+- Alle Geräte benötigen Zugriff zum gleichen lokalen Netzwerk
 
-```sh
-# create a new project
-npx sv create my-app
+## Installation
+
+Im Projektordner ausführen:
+
+```powershell
+npm install
 ```
 
-To recreate this project with the same configuration:
+Das Projekt wird mit `package-lock.json` verwaltet. Deshalb sollte für die gemeinsame Entwicklung npm verwendet werden.
 
-```sh
-# recreate this project
-npx sv@0.17.1 create --template minimal --types ts --add prettier eslint tailwindcss="plugins:none" ai-tools="ide:vscode,claude-code+delivery:plugin+tools:mcp,svelte-code-writer,svelte-core-bestpractices,svelte-file-editor+mcpSetup:remote" --install npm ./
+## Spiel starten
+
+Ein Terminal im Projektordner öffnen und ausführen:
+
+```powershell
+npm start
 ```
 
-## Developing
+Dieser Befehl startet beide benötigten Dienste:
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+- SvelteKit-Client auf `http://localhost:5173`
+- Socket.IO-Server auf `http://localhost:3001`
 
-```sh
+Alternativ können Client und Server auch in zwei Terminals gestartet werden:
+
+```powershell
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+```powershell
+npm run server:dev
+```
 
-To create a production version of your app:
+Für Geräte im gleichen WLAN wird die vom Vite-Terminal angezeigte Network-Adresse verwendet, zum Beispiel `http://192.168.1.42:5173`.
 
-```sh
+## Spiel über mehrere Geräte
+
+1. Der Host startet `npm start`.
+2. Der Host öffnet `/online` oder ruft die angezeigte LAN-Adresse auf.
+3. Der Host erstellt einen Room und verteilt den sechsstelligen Room-Code.
+4. Die anderen Geräte öffnen dieselbe LAN-Adresse und treten über „Beitreten“ bei.
+5. Der Host wählt Runden und Kategorien und startet das Spiel.
+
+Alle Geräte müssen den laufenden Webserver und Socket.IO-Server erreichen können. Bei einer getrennten WLAN-Funktion, VPN, Firewall oder Gast-WLAN-Funktion kann die Verbindung blockiert sein.
+
+## Häufige Probleme
+
+### `npm` wird nicht erkannt
+
+- Node.js und npm neu installieren.
+- Danach ein neues Terminal öffnen.
+- Mit `node --version` und `npm --version` prüfen.
+
+### Port 3001 oder 5173 ist bereits belegt
+
+- Das ältere Programm beziehungsweise Terminal beenden.
+- Danach `npm start` erneut ausführen.
+
+Für einen anderen Socket-Port können temporär beide Variablen gesetzt werden:
+
+```powershell
+$env:SOCKET_PORT="3002"
+$env:VITE_SOCKET_PORT="3002"
+npm start
+```
+
+### Verbindung zum Server fehlgeschlagen
+
+- Prüfen, ob `npm start` beide Prozesse startet.
+- Prüfen, ob in der Konsole `Game Server läuft auf http://0.0.0.0:3001` erscheint.
+- Die Seite über die LAN-IP aufrufen, nicht über `localhost`, wenn ein anderes Gerät verwendet wird.
+- Die Windows-Firewall für Node.js für private Netzwerke erlauben.
+
+### Socket-Verbindung funktioniert lokal, aber nicht im Netzwerk
+
+Der Socket.IO-Server lauscht standardmäßig auf allen Netzwerkschnittstellen (`0.0.0.0`). Der Client nutzt automatisch den Hostnamen der geöffneten Seite.
+
+Bei getrennten Frontend-/Backend-Adressen kann eine oder mehrere Origins gesetzt werden:
+
+```powershell
+$env:CLIENT_ORIGIN="http://192.168.1.42:5173"
+npm run server:dev
+```
+
+Mehrere erlaubte Origins können komma-getrennt angegeben werden.
+
+## Prüfen und Bauen
+
+```powershell
+npm run check
+npm run server:check
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Mit `npm run dev:all` werden Client und Server gemeinsam gestartet. `npm start` ist dafür ein kürzerer Alias.
