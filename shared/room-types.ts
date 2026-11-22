@@ -13,6 +13,8 @@ export interface RoomPlayer {
     name: string;
     isHost: boolean;
     isConnected: boolean;
+    // Farbe des Spieler-Chips (aus PLAYER_COLORS)
+    color: string;
 }
 
 // Spieler im Spiel (mit Game-Daten)

@@ -1,24 +1,16 @@
 import type { GameState, GamePlayer } from '../../shared/room-types.ts';
-import { getQuestionsByCategories, questions, type QuestionCategory } from '../../src/lib/questions.ts';
+import { getRandomQuestions } from '../../src/lib/server/questions.ts';
 
 const games = new Map<string, GameState>();
 const decks = new Map<string, string[]>();
 
-function shuffle<T>(items: T[]): T[] {
-    const copy = [...items];
-    for (let i = copy.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [copy[i], copy[j]] = [copy[j], copy[i]];
-    }
-    return copy;
-}
-
+// Fragen kommen wie im Hot Seat aus der Datenbank (Kategorien aus /api/categories).
 export function initGame(
     roomCode: string,
     playerIds: string[],
     playerNames: string[],
-    totalRoundsParam?: number,
-    categoriesParam?: string[]
+    totalRounds: number,
+    categoryIds: number[]
 ): GameState | null {
     const minPlayers = 2;
     if (playerIds.length < minPlayers) {
@@ -34,17 +26,17 @@ export function initGame(
         votes: 0
     }));
 
-    const categories = (categoriesParam ?? []) as QuestionCategory[];
-    const availableQuestions =
-        categories.length > 0 ? getQuestionsByCategories(categories) : questions;
-    const deck = shuffle(availableQuestions).slice(0, Math.min(totalRoundsParam ?? 10, availableQuestions.length));
-    const totalRounds = deck.length;
+    const deck = getRandomQuestions(categoryIds, totalRounds);
+    if (deck.length === 0) {
+        console.log(`Keine Fragen für die gewählten Kategorien in Room ${roomCode}`);
+        return null;
+    }
     decks.set(roomCode, deck);
 
     const gameState: GameState = {
         phase: 'voting',
         round: 1,
-        totalRounds,
+        totalRounds: deck.length,
         question: deck[0],
         players,
         voterIndex: 0,
@@ -112,6 +104,30 @@ export function abortVoting(roomCode: string): GameState | null {
         return null;
     }
     finishVoting(gameState);
+    return gameState;
+}
+
+// Entfernt einen Spieler aus dem laufenden Spiel (Verlassen, Kick, Verbindungsabbruch).
+// Gibt den neuen Spielzustand zurück, oder null, wenn der Spieler in keinem Spiel war.
+export function removePlayerFromGame(roomCode: string, playerId: string): GameState | null {
+    const gameState = games.get(roomCode);
+    if (!gameState || !gameState.players.some((p) => p.id === playerId)) {
+        return null;
+    }
+
+    gameState.players = gameState.players.filter((p) => p.id !== playerId);
+    gameState.votedPlayerIds = gameState.votedPlayerIds.filter((id) => id !== playerId);
+
+    if (gameState.players.length < 2) {
+        // Mit nur einer Person kann nicht weitergespielt werden: direkt zum Endergebnis.
+        gameState.phase = 'final';
+    } else if (
+        gameState.phase === 'voting' &&
+        gameState.votedPlayerIds.length >= gameState.players.length
+    ) {
+        finishVoting(gameState);
+    }
+
     return gameState;
 }
 

@@ -1,4 +1,4 @@
-import type { Room, RoomPlayer, ChatMessage, GameState } from './room-types.ts';
+import type { Room, ChatMessage, GameState } from './room-types.ts';
 
 // Daten, die der Client an den Server senden darf
 export interface ClientToServerEvents {
@@ -17,6 +17,11 @@ export interface ClientToServerEvents {
 
     'room:leave': () => void;
 
+    // Nur der Host: einen Spieler aus dem Room entfernen
+    'room:kick': (data: {
+        playerId: string;
+    }) => void;
+
     // Chat
     'chat:send': (data: {
         message: string;
@@ -25,7 +30,8 @@ export interface ClientToServerEvents {
     // Game
     'game:start': (data: {
         totalRounds: number;
-        categories: string[];
+        // IDs aus der Tabelle categories (wie im Hot Seat)
+        categoryIds: number[];
     }) => void;
 
     'game:vote': (data: {
@@ -56,13 +62,13 @@ export interface ServerToClientEvents {
         room: Room;
     }) => void;
 
-    'room:player-joined': (data: {
-        player: RoomPlayer;
+    // Aktueller Stand des Rooms (Spieler, Host), nach jedem Beitritt, Verlassen oder Kick
+    'room:updated': (data: {
+        room: Room;
     }) => void;
 
-    'room:player-left': (data: {
-        playerId: string;
-    }) => void;
+    // Der Empfänger wurde vom Host aus dem Room entfernt
+    'room:kicked': () => void;
 
     'room:error': (data: {
         message: string;

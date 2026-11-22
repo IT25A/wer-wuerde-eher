@@ -1,17 +1,11 @@
 import { type Player } from '$lib/game.svelte';
+import { PLAYER_COLORS } from '../../shared/player-colors';
 
 type playerColor = {
 color: string;
 usedBy: number;
 }
-const playerColors:playerColor[] = [
-    { color: '#FF0000', usedBy: 0 },
-    { color: '#00FF00', usedBy: 0 },
-    { color: '#0000FF', usedBy: 0 },
-    { color: '#FFFF00', usedBy: 0 },
-    { color: '#FF00FF', usedBy: 0 },
-    { color: '#00FFFF', usedBy: 0 },
-];
+const playerColors: playerColor[] = PLAYER_COLORS.map((color) => ({ color, usedBy: 0 }));
 
 function assignRandomColor(player: Player): string {
 const minUsedBy = Math.min(...playerColors.map(p => p.usedBy));

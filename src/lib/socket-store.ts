@@ -12,6 +12,14 @@ const chatMessages = writable<ChatMessage[]>([]);
 const errorMessage = writable('');
 const isConnected = writable(false);
 const gameState = writable<GameState | null>(null);
+// Eigene Spieler-ID (= Socket-ID), reaktiv für die Komponenten
+const playerId = writable<string | null>(null);
+
+function resetRoom() {
+    currentRoom.set(null);
+    chatMessages.set([]);
+    gameState.set(null);
+}
 
 function connect() {
     if (get(socket)) {
@@ -28,6 +36,7 @@ function connect() {
 
     newSocket.on('connect', () => {
         isConnected.set(true);
+        playerId.set(newSocket.id ?? null);
         errorMessage.set('');
         console.log('✅ Socket verbunden:', newSocket.id);
     });
@@ -40,9 +49,8 @@ function connect() {
 
     newSocket.on('disconnect', (reason) => {
         isConnected.set(false);
-        currentRoom.set(null);
-        chatMessages.set([]);
-        gameState.set(null);
+        playerId.set(null);
+        resetRoom();
         console.log('⚠️ Verbindung getrennt:', reason);
     });
 
@@ -58,24 +66,13 @@ function connect() {
         console.log('✅ Room beigetreten:', data.room.code);
     });
 
-    newSocket.on('room:player-joined', (data) => {
-        currentRoom.update((room) => {
-            if (room) {
-                console.log('✅ Spieler beigetreten:', data.player.name);
-                return { ...room, players: [...room.players, data.player] };
-            }
-            return room;
-        });
+    newSocket.on('room:updated', (data) => {
+        currentRoom.set(data.room);
     });
 
-    newSocket.on('room:player-left', (data) => {
-        currentRoom.update((room) => {
-            if (room) {
-                console.log('⚠️ Spieler verlassen:', data.playerId);
-                return { ...room, players: room.players.filter((p) => p.id !== data.playerId) };
-            }
-            return room;
-        });
+    newSocket.on('room:kicked', () => {
+        resetRoom();
+        errorMessage.set('Du wurdest vom Host aus dem Room entfernt.');
     });
 
     newSocket.on('room:error', (data) => {
@@ -116,9 +113,8 @@ function disconnect() {
         console.log('Socket getrennt');
     }
     isConnected.set(false);
-    currentRoom.set(null);
-    chatMessages.set([]);
-    gameState.set(null);
+    playerId.set(null);
+    resetRoom();
 }
 
 function createRoom(playerName: string) {
@@ -140,7 +136,7 @@ function joinRoom(roomCode: string, playerName: string) {
         return;
     }
     console.log('Sende room:join mit roomCode:', roomCode, 'playerName:', playerName);
-    currentSocket.emit('room:join', { roomCode: roomCode.trim(), playerName });
+    currentSocket.emit('room:join', { roomCode: roomCode.trim().toUpperCase(), playerName });
 }
 
 function leaveRoom() {
@@ -148,9 +144,26 @@ function leaveRoom() {
     if (!currentSocket) return;
     console.log('Verlasse Room');
     currentSocket.emit('room:leave');
-    currentRoom.set(null);
-    chatMessages.set([]);
-    gameState.set(null);
+    resetRoom();
+    errorMessage.set('');
+}
+
+function kickPlayer(targetPlayerId: string) {
+    const currentSocket = get(socket);
+    if (!currentSocket?.connected) {
+        errorMessage.set('❌ Nicht mit Server verbunden');
+        return;
+    }
+    currentSocket.emit('room:kick', { playerId: targetPlayerId });
+}
+
+function startGame(totalRounds: number, categoryIds: number[]) {
+    const currentSocket = get(socket);
+    if (!currentSocket?.connected) {
+        errorMessage.set('❌ Nicht mit Server verbunden');
+        return;
+    }
+    currentSocket.emit('game:start', { totalRounds, categoryIds });
 }
 
 function sendChatMessage(message: string) {
@@ -197,6 +210,8 @@ export const socketStore = {
     createRoom,
     joinRoom,
     leaveRoom,
+    kickPlayer,
+    startGame,
     sendChatMessage,
     vote,
     nextRound,
@@ -211,5 +226,6 @@ export const currentRoomStore = currentRoom;
 export const chatMessagesStore = chatMessages;
 export const errorMessageStore = errorMessage;
 export const gameStateStore = gameState;
+export const playerIdStore = playerId;
 
 

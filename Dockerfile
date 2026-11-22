@@ -21,13 +21,14 @@ ENV HOST=0.0.0.0
 ENV PORT=3000
 # Die mitgelieferte Datenbank wird beim ersten Start in das (leere) Volume kopiert, siehe src/lib/server/database.ts.
 ENV DATABASE_SEED_PATH=/app/seed/Fragen.db
+ENV DATABASE_PATH=/data/Fragen.db
 COPY --from=build /app/package.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/build ./build
 # Der Game-Server (TypeScript) wird von Node direkt ausgeführt und braucht diese Quelldateien.
 COPY --from=build /app/server/src ./server/src
 COPY --from=build /app/shared ./shared
-COPY --from=build /app/src/lib/questions.ts ./src/lib/questions.ts
+COPY --from=build /app/src/lib/server/database.ts /app/src/lib/server/questions.ts ./src/lib/server/
 COPY --from=build /app/data/Fragen.db ./seed/Fragen.db
 
 # Die Datenbank liegt in /data (Volume). Der Ordner muss vor "USER node" angelegt werden und "node" gehören.
