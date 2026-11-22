@@ -1,6 +1,7 @@
 <!-- #region Scripts -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	interface question {
 		id: number;
 		questionText: string;
@@ -32,7 +33,6 @@
 		questions = (await response.json()).questions as question[];
 		console.log('Loaded questions:', questions);
 	}
-	
 
 	onMount(() => {
 		loadCategories();
@@ -163,7 +163,20 @@
 	}
 </script>
 <!-- #endregion -->
+
 <h1>Kategorien</h1>
+<div id="addStuff">
+	<form id="addCategoryForm" onsubmit={handleAddCategory}>
+		<input type="text" placeholder="Kategoriename" name="categoryName" required />
+		<input type="text" placeholder="Beschreibung" name="categoryDescription" />
+		<button type="submit">Kategorie hinzufügen</button>
+	</form>
+	<hr />
+	<form id="addQuestionForm" onsubmit={handleAddQuestion}>
+		<input type="text" placeholder="Fragenstellung" name="questionText" required style="flex: 1;" />
+		<button type="submit">Frage hinzufügen</button>
+	</form>
+</div>
 <table>
 	<thead>
 		<tr>
@@ -171,19 +184,20 @@
 			<th>Frage</th>
 			{#each categories as category (category.id)}
 				<th
-					>{category.name}<button
-						onclick={() => {
-							categoryToDelete = category;
-							deleteDialog?.showModal();
-						}}>X</button
-					>
+					>{category.name}
 					<button
 						onclick={() => {
 							openEditCategoryDialog(category);
 						}}
 					>
-						Bearbeiten
+						<Icon name="edit" />
 					</button>
+					<button
+						onclick={() => {
+							categoryToDelete = category;
+							deleteDialog?.showModal();
+						}}><Icon name="delete" color="#ff0000" /></button
+					>
 				</th>
 			{/each}
 		</tr>
@@ -192,9 +206,8 @@
 		{#each questions as question (question.id)}
 			<tr>
 				<td>{question.id}</td>
-				<td
-					><button onclick={() => openEditQuestionTextDialog(question)}
-						>Edit</button
+				<td class="questionText"
+					><button onclick={() => openEditQuestionTextDialog(question)}><Icon name="edit" /></button
 					>
 					{question.questionText}</td
 				>
@@ -211,38 +224,29 @@
 		{/each}
 	</tbody>
 </table>
-<div id="addStuff">
-	<form id="addCategoryForm" onsubmit={handleAddCategory}>
-		<input type="text" placeholder="Kategoriename" name="categoryName" />
-		<input type="text" placeholder="Beschreibung" name="categoryDescription" />
-		<button type="submit">Kategorie hinzufügen</button>
-	</form>
-	<form id="addQuestionForm" onsubmit={handleAddQuestion}>
-		<input type="text" placeholder="Fragenstellung" name="questionText" />
-		<button type="submit">Frage hinzufügen</button>
-	</form>
-</div>
 
 {#if errorText}
 	<p class="error">{errorText}</p>
 {/if}
 
 <!-- #region Dialogs -->
-<dialog  bind:this={deleteDialog}>
+<dialog bind:this={deleteDialog}>
 	<h3>Kategorie löschen</h3>
 	<p>Möchten Sie die Kategorie {categoryToDelete?.name} wirklich löschen?</p>
 	<div>
-		<button class="delete"
+		<button
+			class="delete"
 			onclick={() => {
 				if (categoryToDelete) deleteCategory(categoryToDelete.id);
 				deleteDialog?.close();
 				categoryToDelete = null;
 				loadCategories();
-			}}>Löschen</button>
-			<button class="confirm" onclick={() => deleteDialog?.close()}>Abbrechen</button>
+			}}>Löschen</button
+		>
+		<button class="confirm" onclick={() => deleteDialog?.close()}>Abbrechen</button>
 	</div>
 </dialog>
-<dialog class="KB" bind:this={editCategoryDialog}>
+<dialog class="editCategoryDialog" bind:this={editCategoryDialog}>
 	<h3>Kategorie bearbeiten</h3>
 	<form
 		onsubmit={(e) => {
@@ -274,18 +278,21 @@
 			placeholder="Beschreibung"></textarea>
 		<div>
 			<button class="confirm" type="submit">Speichern</button>
-			<button class="cancel" onclick={() => editCategoryDialog?.close()}>Abbrechen</button>
+			<button class="cancel" onclick={() => editCategoryDialog?.close()} type="button"
+				>Abbrechen</button
+			>
 		</div>
 	</form>
 </dialog>
-<dialog class="QE" bind:this={editQuestionTextDialog}>
-	<button class="delete"
+<dialog class="editQuestionDialog" bind:this={editQuestionTextDialog}>
+	<button
+		class="delete"
 		onclick={() => {
 			if (questionToEdit) {
 				questionToDelete = questionToEdit;
 				deleteQuestionDialog?.showModal();
 			}
-		}}>Frage löschen</button
+		}}>Frage löschen<Icon name="delete" /></button
 	>
 	<h3>Frage bearbeiten</h3>
 	<form
@@ -305,14 +312,17 @@
 		<textarea name="editQuestionText" bind:value={editQuestionText} placeholder="Frage"></textarea>
 		<div>
 			<button class="confirm" type="submit">Speichern</button>
-			<button class="cancel" onclick={() => editQuestionTextDialog?.close()}>Abbrechen</button>
+			<button class="cancel" onclick={() => editQuestionTextDialog?.close()} type="button"
+				>Abbrechen</button
+			>
 		</div>
 	</form>
 </dialog>
 <dialog bind:this={deleteQuestionDialog}>
 	<h3>Frage löschen</h3>
 	<p>Möchten Sie die Frage {questionToDelete?.questionText} wirklich löschen?</p>
-	<button class="delete"
+	<button
+		class="delete"
 		onclick={async () => {
 			if (questionToDelete) {
 				await fetch(`/api/cms/question/`, {
@@ -327,20 +337,22 @@
 			loadQuestions();
 		}}>Löschen</button
 	>
-	<button class="confirm"
+	<button
+		class="confirm"
 		onclick={() => {
 			deleteQuestionDialog?.close();
 		}}>Abbrechen</button
 	>
 </dialog>
+
 <!-- #endregion -->
 
 <style>
 	dialog[open] {
-    display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
 	}
 	dialog {
 		background-color: #0a1531;
@@ -349,17 +361,30 @@
 		border-radius: 0.5rem;
 		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 	}
+	dialog input {
+		font-size: 1.5rem;
+	}
+	dialog div {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+	dialog div * {
+		font-size: 1.25rem;
+		flex-grow: 1;
+	}
 	dialog h3 {
 		color: #ffffff;
-		font-size: 1.5rem;
+		font-size: 3rem;
 	}
 	.error {
 		color: red;
 	}
-	.KB{
+	.editCategoryDialog {
 		width: min(50%, calc(200px + 25%));
 	}
-	.KB form {
+	.editCategoryDialog form {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
@@ -376,10 +401,10 @@
 		border: none;
 		cursor: pointer;
 	}
-	.QE{
+	.editQuestionDialog {
 		width: min(50%, calc(200px + 25%));
 	}
-	.QE form {
+	.editQuestionDialog form {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
@@ -393,5 +418,64 @@
 	}
 	textarea {
 		field-sizing: content;
+		resize: none;
+		padding: 0.1em 0.3em;
+	}
+	table {
+		border-collapse: collapse;
+		font-size: 1.5rem;
+		background-color: #0a1531;
+		margin-bottom: 1rem;
+	}
+	thead {
+		position: sticky;
+		z-index: 100;
+		font-size: 1.2em;
+		top: 0;
+		background-color: #123068;
+	}
+	th,
+	td {
+		border: 1px solid #ffffff;
+		padding: 0.5rem;
+		text-align: center;
+	}
+	th button {
+		margin-left: 0.2rem;
+	}
+	.questionText {
+		text-align: left;
+	}
+	input[type='checkbox'] {
+		transform: scale(1.5);
+		accent-color: #4caf50;
+		cursor: pointer;
+	}
+
+	#addStuff {
+		display: flex;
+		align-items: center;
+		flex-direction: column;
+		padding: 2rem;
+		border: 1px solid #ffffff;
+		margin-bottom: 1rem;
+	}
+	#addStuff form {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 1.5rem;
+		gap: 1rem;
+	}
+	#addStuff * {
+		font-size: 1.5rem;
+	}
+	hr {
+		border: none;
+		height: 1px;
+		background-color: hsl(0, 0%, 100%, 0.5);
+		margin: 1rem 0;
+		width: 100%;
 	}
 </style>
