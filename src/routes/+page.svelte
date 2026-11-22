@@ -6,13 +6,9 @@
 <svelte:head>
 	<link
 		rel="stylesheet"
-		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=cycle,indeterminate_question_box,language,public,settings"
+		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=cycle,indeterminate_question_box,public"
 	/>
 </svelte:head>
-<div id="options">
-	<span class="material-symbols-outlined"> language </span>
-	<span class="material-symbols-outlined"> settings </span>
-</div>
 <main>
 	<h1>Wer würde eher?</h1>
 	<div id="button-container">
@@ -26,6 +22,7 @@
 			Nur Fragen <span class="material-symbols-outlined"> indeterminate_question_box </span>
 		</button>
 	</div>
+	<a class="back-link cms-link" href={resolve('/cms')}>Fragen verwalten</a>
 </main>
 
 <style>
@@ -98,30 +95,8 @@
 			'GRAD' 0,
 			'opsz' 24;
 	}
-	#options {
-		position: absolute;
-		top: 0.5rem;
-		right: 0.5rem;
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-		color: gray;
-		z-index: 1000;
-		span {
-			font-size: 2rem;
-			cursor: not-allowed;
-			transition: all 0.1s ease-out;
-		}
-		span:hover {
-			color: hsl(0, 0%, 80%);
-			transform: scale(1.05);
-		}
-		span:active {
-			transform: scale(0.95);
-			animation: wiggleX 0.3s ease-out;
-		}
+	.cms-link {
+		margin-top: 1rem;
 	}
 
 	@keyframes wiggleX {

@@ -1,6 +1,7 @@
 <!-- #region Scripts -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import Icon from '$lib/components/Icon.svelte';
 	interface question {
 		id: number;
@@ -164,8 +165,13 @@
 </script>
 <!-- #endregion -->
 
-<h1>Kategorien</h1>
-<div id="addStuff">
+<a class="back-link top-link" href={resolve('/')}>Zurück zum Hauptmenü</a>
+<h1>Fragen verwalten</h1>
+<p class="subtitle">
+	Fragen und Kategorien anlegen, bearbeiten und zuordnen. Die Änderungen gelten sofort für alle
+	Spielmodi.
+</p>
+<div id="addStuff" class="glow-box">
 	<form id="addCategoryForm" onsubmit={handleAddCategory}>
 		<input type="text" placeholder="Kategoriename" name="categoryName" required />
 		<input type="text" placeholder="Beschreibung" name="categoryDescription" />
@@ -355,11 +361,22 @@
 		align-items: center;
 	}
 	dialog {
-		background-color: #0a1531;
-		color: #ffffff;
-		padding: 1rem;
-		border-radius: 0.5rem;
-		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+		background-color: var(--bg-color);
+		color: var(--text-color);
+		padding: 1.5rem;
+		border: 2px solid var(--text-color);
+		box-shadow: 0 0 32px color-mix(in srgb, var(--text-color) var(--glowiness), transparent);
+	}
+	dialog::backdrop {
+		background: hsla(220, 85%, 3%, 0.7);
+	}
+	.top-link {
+		margin-top: 1rem;
+	}
+	.subtitle {
+		margin-bottom: 1rem;
+		text-align: center;
+		color: var(--color20);
 	}
 	dialog input {
 		font-size: 1.5rem;
@@ -379,7 +396,7 @@
 		font-size: 3rem;
 	}
 	.error {
-		color: red;
+		color: var(--color10light);
 	}
 	.editCategoryDialog {
 		width: min(50%, calc(200px + 25%));
@@ -390,15 +407,11 @@
 		gap: 0.5rem;
 	}
 	.confirm {
-		background-color: #4caf50;
-		color: white;
-		border: none;
+		background-color: var(--color30);
 		cursor: pointer;
 	}
 	.cancel {
-		background-color: #f44336;
-		color: white;
-		border: none;
+		background-color: var(--bg-color);
 		cursor: pointer;
 	}
 	.editQuestionDialog {
@@ -410,9 +423,7 @@
 		gap: 0.5rem;
 	}
 	.delete {
-		background-color: #8e0900;
-		color: white;
-		border: none;
+		background-color: var(--color10);
 		cursor: pointer;
 		align-self: flex-end;
 	}
@@ -424,7 +435,7 @@
 	table {
 		border-collapse: collapse;
 		font-size: 1.5rem;
-		background-color: #0a1531;
+		background-color: var(--bg-color);
 		margin-bottom: 1rem;
 	}
 	thead {
@@ -432,7 +443,7 @@
 		z-index: 100;
 		font-size: 1.2em;
 		top: 0;
-		background-color: #123068;
+		background-color: var(--color70);
 	}
 	th,
 	td {
@@ -448,7 +459,7 @@
 	}
 	input[type='checkbox'] {
 		transform: scale(1.5);
-		accent-color: #4caf50;
+		accent-color: var(--color30);
 		cursor: pointer;
 	}
 
@@ -456,9 +467,9 @@
 		display: flex;
 		align-items: center;
 		flex-direction: column;
-		padding: 2rem;
-		border: 1px solid #ffffff;
-		margin-bottom: 1rem;
+		padding: 1.5rem 2rem;
+		margin-bottom: 1.5rem;
+		background: hsla(220, 85%, 3%, 0.55);
 	}
 	#addStuff form {
 		width: 100%;

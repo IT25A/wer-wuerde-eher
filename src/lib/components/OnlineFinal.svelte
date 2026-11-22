@@ -1,85 +1,113 @@
 <script lang="ts">
-    import { socketStore, gameStateStore, chatMessagesStore } from '$lib/socket-store';
-    import type { ChatMessage, GameState } from '../../../shared/room-types';
+	import { gameStateStore, playerIdStore, socketStore } from '$lib/socket-store';
+	import OnlineChip from '$lib/components/OnlineChip.svelte';
 
-    let newMessage = $state('');
-    let gameState = $state<GameState | null>(null);
-    let chatMessages = $state<ChatMessage[]>([]);
-
-    gameStateStore.subscribe((value) => {
-        gameState = value;
-    });
-
-    chatMessagesStore.subscribe((value) => {
-        chatMessages = value;
-    });
+	const ranking = $derived(
+		$gameStateStore?.players.toSorted(
+			(a, b) => b.roundsWon - a.roundsWon || b.votesTotal - a.votesTotal
+		) ?? []
+	);
+	const top = $derived(ranking[0]);
+	const winners = $derived(
+		top
+			? ranking
+					.filter((p) => p.roundsWon === top.roundsWon && p.votesTotal === top.votesTotal)
+					.map((p) => p.name)
+			: []
+	);
 </script>
 
-<header class="final-heading">
-    <p class="online-kicker">Multiplayer beendet</p>
-    <h1 class="online-title">Das Endergebnis</h1>
-</header>
+<section class="online-panel final">
+	<h1 class="online-title">Endergebnis</h1>
+	{#if winners.length > 0}
+		<p class="final-winner">Am ehesten: {winners.join(' & ')}</p>
+	{/if}
+	<p class="subtitle">Wer die meisten Runden "gewonnen" hat, wurde am häufigsten gewählt.</p>
 
-<div class="online-panel ranking">
-    {#each gameState?.players.toSorted((a, b) => b.roundsWon - a.roundsWon) as player (player.id)}
-        <div class="ranking-row">
-            <span>{player.name}</span>
-            <strong>{player.roundsWon} Runden</strong>
-        </div>
-    {/each}
-</div>
+	<ol class="final-ranking">
+		{#each ranking as player, i (player.id)}
+			<li class={[i === 0 && 'winner', player.id === $playerIdStore && 'me']}>
+				<span class="place">{i + 1}.</span>
+				<OnlineChip id={player.id} name={player.name} size="1rem" />
+				<span class="name">{player.name}</span>
+				<span class="stats">
+					{player.roundsWon}
+					{player.roundsWon === 1 ? 'Runde' : 'Runden'} · {player.votesTotal}
+					{player.votesTotal === 1 ? 'Stimme' : 'Stimmen'}
+				</span>
+			</li>
+		{/each}
+	</ol>
 
-<button class="online-primary exit-button" onclick={() => socketStore.leaveRoom()}>
-    Zurück zum Hauptmenü
-</button>
-
-<section class="online-panel chat-panel">
-    <h3>Chat</h3>
-    <div class="chat-messages">
-        {#if chatMessages.length === 0}
-            <p class="chat-empty">Noch keine Nachrichten</p>
-        {:else}
-            {#each chatMessages as msg (msg.id)}
-                <div class="text-sm">
-                    <span class="chat-name">{msg.playerName}:</span>
-                    <span>{msg.message}</span>
-                </div>
-            {/each}
-        {/if}
-    </div>
-    <form
-        class="chat-form"
-        onsubmit={(e) => {
-            e.preventDefault();
-            if (newMessage.trim()) {
-                socketStore.sendChatMessage(newMessage);
-                newMessage = '';
-            }
-        }}
-    >
-        <input
-            class="online-input"
-            placeholder="Nachricht..."
-            bind:value={newMessage}
-            maxlength="500"
-        />
-        <button class="online-secondary" type="submit">Senden</button>
-    </form>
+	<button type="button" class="online-primary" onclick={() => socketStore.leaveRoom()}>
+		Zurück zum Online-Menü
+	</button>
 </section>
 
 <style>
-    .final-heading { text-align: center; margin-bottom: 1.25rem; }
-    .final-heading h1 { font-size: clamp(2.8rem, 9vw, 5rem); }
-    .ranking { padding: 0.75rem 1rem; }
-    .ranking-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; border-bottom: 1px solid hsla(0, 0%, 100%, 0.12); padding: 0.75rem 0.25rem; }
-    .ranking-row:last-child { border-bottom: 0; }
-    .ranking-row strong { color: var(--color20light); white-space: nowrap; }
-    .exit-button { width: 100%; margin-top: 1.25rem; }
-    .chat-panel { margin-top: 1.25rem; padding: 1rem; }
-    .chat-messages { max-height: 13rem; overflow-y: auto; border-radius: 0.75rem; background: hsla(220, 70%, 5%, 0.72); padding: 0.75rem; }
-    .chat-empty { text-align: center; color: hsla(0, 0%, 100%, 0.55); }
-    .chat-name { color: var(--color20light); }
-    .chat-form { display: grid; grid-template-columns: 1fr auto; gap: 0.65rem; margin-top: 0.75rem; }
-    .chat-form button { min-width: 6.5rem; }
-    @media (max-width: 520px) { .chat-form { grid-template-columns: 1fr; } }
+	.final {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		padding: 1.75rem clamp(1.25rem, 4vw, 2.5rem) 2rem;
+		text-align: center;
+	}
+
+	.final-winner {
+		font-size: clamp(2.25rem, 5vw, 3.25rem);
+		color: var(--color10);
+	}
+
+	.subtitle {
+		font-size: 1.2rem;
+		color: var(--color20);
+	}
+
+	.final-ranking {
+		display: grid;
+		gap: 0.5rem;
+		width: 100%;
+		margin: 0.5rem 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	li {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		border: 1px solid hsla(0, 0%, 100%, 0.35);
+		padding: 0.4rem 0.75rem;
+	}
+
+	li.winner {
+		border-color: var(--color10);
+		box-shadow: 0 0 16px color-mix(in srgb, var(--color10) 50%, transparent);
+	}
+
+	li.me .name {
+		color: var(--color20);
+	}
+
+	.place {
+		width: 2rem;
+		font-size: 1.75rem;
+	}
+
+	.name {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-align: left;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: 1.75rem;
+	}
+
+	.stats {
+		font-size: 1.2rem;
+		color: hsla(0, 0%, 100%, 0.7);
+		white-space: nowrap;
+	}
 </style>

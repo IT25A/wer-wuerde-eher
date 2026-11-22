@@ -1,6 +1,7 @@
 import type { Room, RoomPlayer } from '../../shared/room-types.ts';
 import { MAX_PLAYERS_PER_ROOM } from '../../shared/room-types.ts';
 import { deleteGame } from './game-store.ts';
+import { leastUsedColor } from '../../shared/player-colors.ts';
 
 const rooms = new Map<string, Room>();
 
@@ -36,7 +37,8 @@ export function createRoom(hostId: string, hostName: string): Room | null {
         id: hostId,
         name: hostName.trim(),
         isHost: true,
-        isConnected: true
+        isConnected: true,
+        color: leastUsedColor([])
     };
 
     const newRoom: Room = {
@@ -49,7 +51,7 @@ export function createRoom(hostId: string, hostName: string): Room | null {
     };
 
     rooms.set(code, newRoom);
-    console.log(`Room erstellt: ${code} mit Host ${hostName}`);
+    console.log(`Room erstellt: ${code} mit Host ${hostId}`);
     return newRoom;
 }
 
@@ -89,11 +91,12 @@ export function addPlayerToRoom(
         id: playerId,
         name: playerName.trim(),
         isHost: false,
-        isConnected: true
+        isConnected: true,
+        color: leastUsedColor(room.players.map((p) => p.color))
     };
 
     room.players.push(newPlayer);
-    console.log(`Spieler ${playerName} ist Room ${code} beigetreten`);
+    console.log(`Spieler ${playerId} ist Room ${code} beigetreten`);
     return room;
 }
 
@@ -111,7 +114,7 @@ export function removePlayerFromRoom(code: string, playerId: string): Room | nul
     if (room.hostId === playerId && room.players.length > 0) {
         room.hostId = room.players[0].id;
         room.players[0].isHost = true;
-        console.log(`Neuer Host für Room ${code}: ${room.players[0].name}`);
+        console.log(`Neuer Host für Room ${code}: ${room.players[0].id}`);
     }
 
     if (room.players.length === 0) {

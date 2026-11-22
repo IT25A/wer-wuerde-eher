@@ -1,49 +1,147 @@
 <script lang="ts">
-	import { questions } from '$lib/questions';
-	function randomQuestion() {
-		return questions[Math.floor(Math.random() * questions.length)];
+	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
+
+	// Kategorien und Fragen kommen wie im Hot Seat aus der Datenbank.
+	type Category = { id: number; name: string; description: string | null; questionCount: number };
+
+	let categories = $state.raw<Category[]>([]);
+	let selectedCategoryIds = $state<number[]>([]);
+	let deck = $state.raw<string[]>([]);
+	let index = $state(0);
+	let isLoading = $state(true);
+	let error = $state('');
+
+	const question = $derived(deck[index] ?? '');
+
+	async function loadDeck() {
+		error = '';
+		if (selectedCategoryIds.length === 0) {
+			deck = [];
+			error = 'Wählt mindestens eine Kategorie aus.';
+			return;
+		}
+		isLoading = true;
+		try {
+			const response = await fetch('/api/game/questions', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ categoryIds: selectedCategoryIds, count: 100 })
+			});
+			const result: { questions?: { questionText: string }[]; error?: string } =
+				await response.json();
+			if (!response.ok || !result.questions?.length) {
+				throw new Error(result.error ?? 'Fragen konnten nicht geladen werden.');
+			}
+			deck = result.questions.map((q) => q.questionText);
+			index = 0;
+		} catch (e) {
+			deck = [];
+			error = e instanceof Error ? e.message : 'Fragen konnten nicht geladen werden.';
+		} finally {
+			isLoading = false;
+		}
 	}
-	let question = $state(randomQuestion());
+
+	// Nächste Frage aus dem gemischten Stapel; ist er durch, wird neu gemischt.
+	function nextQuestion() {
+		if (index + 1 < deck.length) index++;
+		else void loadDeck();
+	}
+
+	function toggleCategory(categoryId: number) {
+		selectedCategoryIds = selectedCategoryIds.includes(categoryId)
+			? selectedCategoryIds.filter((id) => id !== categoryId)
+			: [...selectedCategoryIds, categoryId];
+		void loadDeck();
+	}
+
+	onMount(async () => {
+		try {
+			const response = await fetch('/api/categories');
+			if (!response.ok) throw new Error();
+			categories = (await response.json()) as Category[];
+			selectedCategoryIds = categories.map((category) => category.id);
+		} catch {
+			isLoading = false;
+			error = 'Kategorien konnten nicht geladen werden.';
+			return;
+		}
+		await loadDeck();
+	});
 </script>
 
-<p>Wer würde <span class="question">{question}</span></p>
-<button onclick={() => (question = randomQuestion())}>Neue Frage</button>
+<main class="page-box glow-box">
+	<p class="subtitle">Nur Fragen · ohne Punkte, einfach diskutieren</p>
+
+	<h1 class="question">
+		{#if question}
+			Wer würde eher {question}?
+		{:else if isLoading}
+			Fragen werden geladen …
+		{:else}
+			Wer würde eher …?
+		{/if}
+	</h1>
+
+	{#if error}
+		<p class="error-text" role="alert">{error}</p>
+	{/if}
+
+	<button class="online-primary" onclick={nextQuestion} disabled={isLoading || deck.length === 0}>
+		Neue Frage
+	</button>
+
+	{#if categories.length > 0}
+		<fieldset class="categories">
+			<legend>Kategorien</legend>
+			{#each categories as category (category.id)}
+				<label class="category-label" title={category.description}>
+					<input
+						type="checkbox"
+						checked={selectedCategoryIds.includes(category.id)}
+						onchange={() => toggleCategory(category.id)}
+					/>
+					{category.name}
+				</label>
+			{/each}
+		</fieldset>
+	{/if}
+
+	<a class="back-link" href={resolve('/')}>Zurück zum Hauptmenü</a>
+</main>
 
 <style>
-	:global(body) {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		min-height: 100dvh;
-		font-family: 'Bebas Neue', cursive;
+	.subtitle {
+		color: var(--color20);
 	}
-	p {
-		text-wrap: balance;
-		font-size: 3rem;
-		text-align: center;
-	}
+
 	.question {
-		color: hsl(20, 100%, 50%);
-		text-shadow: 0 0 20px hsla(20, 100%, 50%, 0.7);
+		font-size: clamp(2.5rem, 6vw, 3.5rem);
+		line-height: 1.1;
+		text-wrap: balance;
 	}
-	button {
-		display: block;
-		padding: 0.5rem 1rem;
-		width: min(80%, 300px);
-		font-size: 1.5rem;
-		background-color: hsl(20, 100%, 48%);
-		color: white;
-		border: 1px white solid;
+
+	.categories {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.5rem 1.25rem;
+		width: 100%;
+		margin: 0;
+		border: 1px solid var(--text-color);
+		padding: 0.5rem 1rem 0.75rem;
+	}
+
+	.category-label {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 1.35rem;
 		cursor: pointer;
-		text-align: center;
-		transition: all 0.1s ease-out;
 	}
-	button:hover {
-		background-color: hsl(22, 100%, 50%);
-		transform: scale(1.02);
-	}
-	button:active {
-		transform: scale(0.98);
+
+	.category-label input {
+		accent-color: var(--color20dark);
 	}
 </style>

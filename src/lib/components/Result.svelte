@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { game } from '$lib/game.svelte';
+	import PlayerChip from '$lib/components/playerChip.svelte';
 
 	const isLast = $derived(game.round >= game.totalRounds);
 	const maxVotes = $derived(Math.max(1, ...game.tally));
@@ -19,13 +20,13 @@
 <ul class="vote-counts">
 	{#each playersByVotes as p (p.name)}
 		<li>
-			<div class="result-votes">
-				<span>{p.name}: </span>
-				<span>{p.votes}</span>
+			<PlayerChip player={p} style="font-size: 1rem;" />
+			<div class="vote-row">
+				<span class="result-votes">{p.name}: {p.votes}</span>
+				{#if p.votes > 0}
+					<div class="result-vote-bar" style:width="{(p.votes / maxVotes) * 100}%"></div>
+				{/if}
 			</div>
-			{#if p.votes > 0}
-				<div class="result-vote-bar" style:width="{(p.votes / maxVotes) * 100}%"></div>
-			{/if}
 		</li>
 	{/each}
 </ul>
@@ -56,18 +57,25 @@
 		margin-bottom: 1rem;
 	}
 	.vote-counts {
+		display: grid;
+		gap: 0.6rem;
 		list-style: none;
-		justify-content: space-between;
 		padding: 0;
 		margin: 0;
 		width: 100%;
 	}
+	.vote-counts li {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+	.vote-row {
+		flex: 1;
+		min-width: 0;
+		text-align: left;
+	}
 	.result-votes {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		width: 100%;
-		max-width: 600px;
+		font-size: 1.4rem;
 	}
 
 	.result-vote-bar {

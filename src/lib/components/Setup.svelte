@@ -32,9 +32,11 @@
 		void loadCategories();
 	});
 
+	let startError = $state('');
+
 	async function startGame() {
 		isStarting = true;
-		error = await game.start();
+		startError = (await game.start()) ?? '';
 		isStarting = false;
 	}
 
@@ -71,7 +73,7 @@
 		</button>
 	</form>
 	{#if error}
-		<p class="error" role="alert">{error}</p>
+		<p class="error-text" role="alert">{error}</p>
 	{/if}
 
 	{#if game.players.length}
@@ -88,18 +90,18 @@
 	</p>
 </section>
 
-<fieldset class="mt-6">
-	<legend class="muted mb-2">Kategorien</legend>
+<fieldset id="categories">
+	<legend>Kategorien</legend>
 	{#if categoriesError}
-		<p class="text-rose-300" role="alert">{categoriesError}</p>
+		<p class="error-text" role="alert">{categoriesError}</p>
 	{:else if categories.length === 0}
 		<p class="muted">Kategorien werden geladen …</p>
 	{/if}
-	<div class="grid gap-3 sm:grid-cols-2">
+	<div class="category-list">
 		{#each categories as category (category.id)}
 			<label class="category-label">
 				<input
-					class="mt-1 accent-cyan-300"
+					class="category-input"
 					type="checkbox"
 					checked={game.selectedCategoryIds.includes(category.id)}
 					onchange={() => game.toggleCategory(category.id)}
@@ -113,7 +115,7 @@
 		{/each}
 	</div>
 	{#if game.selectedCategoryIds.length === 0}
-		<p class="mt-2 text-rose-300" role="alert">Wählt mindestens eine Kategorie aus.</p>
+		<p class="error-text" role="alert">Wählt mindestens eine Kategorie aus.</p>
 	{/if}
 </fieldset>
 
@@ -146,8 +148,8 @@
 >
 	{isStarting ? 'Fragen werden geladen …' : 'Spiel starten'}
 </button>
-{#if error}
-	<p class="error-text" role="alert">{error}</p>
+{#if startError}
+	<p class="error-text" role="alert">{startError}</p>
 {/if}
 
 <style>
@@ -156,6 +158,28 @@
 	}
 	.subtitle {
 		color: var(--color20);
+	}
+	#categories {
+		width: 100%;
+		margin: 0;
+		border: 1px solid var(--text-color);
+		padding: 0.5rem 1rem 0.75rem;
+	}
+	.category-list {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.5rem 1.25rem;
+	}
+	.category-label {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 1.35rem;
+		cursor: pointer;
+	}
+	.category-input {
+		accent-color: var(--color20dark);
 	}
 	#setup-players {
 		display: flex;
@@ -205,9 +229,11 @@
 		display: flex;
 		flex-direction: row;
 		align-items: center;
-		justify-content: space-between;
+		justify-content: center;
+		gap: 0.5rem;
+		width: 100%;
 		margin: 0;
-		border-radius: 0.5rem;
+		border: 1px solid var(--text-color);
 	}
 	.round-option {
 		display: inline-flex;
