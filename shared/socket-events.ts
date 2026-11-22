@@ -1,4 +1,4 @@
-import type { Room, RoomPlayer, ChatMessage, GameState } from './room-types';
+import type { Room, RoomPlayer, ChatMessage, GameState } from './room-types.ts';
 
 // Daten, die der Client an den Server senden darf
 export interface ClientToServerEvents {

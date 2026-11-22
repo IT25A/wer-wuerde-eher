@@ -3,22 +3,22 @@ import type { Server, Socket } from 'socket.io';
 import type {
     ClientToServerEvents,
     ServerToClientEvents
-} from '../../shared/socket-events';
-import type { ChatMessage } from '../../shared/room-types';
+} from '../../shared/socket-events.ts';
+import type { ChatMessage } from '../../shared/room-types.ts';
 import {
     createRoom,
     getRoom,
     addPlayerToRoom,
     removePlayerFromRoom,
     setPlayerConnectionStatus
-} from './room-store';
+} from './room-store.ts';
 import {
     initGame,
     getGameState,
     processVote,
     nextRound,
     abortVoting
-} from './game-store';
+} from './game-store.ts';
 
 // Unser Socket.IO-Server kennt jetzt unsere Event-Typen.
 type GameServer = Server<
@@ -49,7 +49,7 @@ export function registerSocketHandlers(io: GameServer): void {
 
         // Room erstellen
         socket.on('room:create', (data) => {
-            console.log(`Room erstellen angefordert von: ${socket.id}, Name: ${data.playerName}`);
+            console.log(`Room erstellen angefordert von: ${socket.id}`);
 
             const room = createRoom(socket.id, data.playerName);
 
@@ -70,7 +70,7 @@ export function registerSocketHandlers(io: GameServer): void {
 
         // Room beitreten
         socket.on('room:join', (data) => {
-            console.log(`Room beitreten angefordert: ${data.roomCode} von ${socket.id}, Name: ${data.playerName}`);
+            console.log(`Room beitreten angefordert: ${data.roomCode} von ${socket.id}`);
 
             const room = addPlayerToRoom(data.roomCode, socket.id, data.playerName);
 
@@ -163,8 +163,6 @@ export function registerSocketHandlers(io: GameServer): void {
                 message,
                 timestamp: Date.now()
             };
-
-            console.log(`Chat-Nachricht von ${playerName} in Room ${roomCode}: ${message}`);
 
             io.to(roomCode).emit('chat:message', { message: chatMessage });
         });

@@ -1,5 +1,5 @@
-import type { GameState, GamePlayer } from '../../shared/room-types';
-import { getQuestionsByCategories, questions, type QuestionCategory } from '../../src/lib/questions';
+import type { GameState, GamePlayer } from '../../shared/room-types.ts';
+import { getQuestionsByCategories, questions, type QuestionCategory } from '../../src/lib/questions.ts';
 
 const games = new Map<string, GameState>();
 const decks = new Map<string, string[]>();

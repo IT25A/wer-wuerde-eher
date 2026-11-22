@@ -1,6 +1,6 @@
-import type { Room, RoomPlayer } from '../../shared/room-types';
-import { MAX_PLAYERS_PER_ROOM } from '../../shared/room-types';
-import { deleteGame } from './game-store';
+import type { Room, RoomPlayer } from '../../shared/room-types.ts';
+import { MAX_PLAYERS_PER_ROOM } from '../../shared/room-types.ts';
+import { deleteGame } from './game-store.ts';
 
 const rooms = new Map<string, Room>();
 

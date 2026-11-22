@@ -1,12 +1,13 @@
 # Wer würde eher?
 
-Lokales Multiplayer-Spiel mit einer SvelteKit-Webseite und einem Socket.IO-Server.
+Multiplayer-Spiel mit einer SvelteKit-Webseite und einem Socket.IO-Game-Server. Beide laufen in **einem** Node-Prozess auf **einem** Port.
+
+Live: https://werwuerde.apps.it25a.de (IT25A App Deploy)
 
 ## Voraussetzungen
 
-- Node.js 20 oder neuer
+- Node.js 26 (der Game-Server wird von Node direkt als TypeScript ausgeführt)
 - npm
-- Alle Geräte benötigen Zugriff zum gleichen lokalen Netzwerk
 
 ## Installation
 
@@ -18,81 +19,53 @@ npm install
 
 Das Projekt wird mit `package-lock.json` verwaltet. Deshalb sollte für die gemeinsame Entwicklung npm verwendet werden.
 
-## Spiel starten
-
-Ein Terminal im Projektordner öffnen und ausführen:
-
-```powershell
-npm start
-```
-
-Dieser Befehl startet beide benötigten Dienste:
-
-- SvelteKit-Client auf `http://localhost:5173`
-- Socket.IO-Server auf `http://localhost:3001`
-
-Alternativ können Client und Server auch in zwei Terminals gestartet werden:
+## Entwickeln
 
 ```powershell
 npm run dev
 ```
 
-```powershell
-npm run server:dev
-```
+Startet Webseite und Game-Server zusammen auf `http://localhost:5173`. Für Geräte im gleichen WLAN wird die vom Vite-Terminal angezeigte Network-Adresse verwendet, zum Beispiel `http://192.168.1.42:5173`.
 
-Für Geräte im gleichen WLAN wird die vom Vite-Terminal angezeigte Network-Adresse verwendet, zum Beispiel `http://192.168.1.42:5173`.
-
-## Spiel über mehrere Geräte
-
-1. Der Host startet `npm start`.
-2. Der Host öffnet `/online` oder ruft die angezeigte LAN-Adresse auf.
-3. Der Host erstellt einen Room und verteilt den sechsstelligen Room-Code.
-4. Die anderen Geräte öffnen dieselbe LAN-Adresse und treten über „Beitreten“ bei.
-5. Der Host wählt Runden und Kategorien und startet das Spiel.
-
-Alle Geräte müssen den laufenden Webserver und Socket.IO-Server erreichen können. Bei einer getrennten WLAN-Funktion, VPN, Firewall oder Gast-WLAN-Funktion kann die Verbindung blockiert sein.
-
-## Häufige Probleme
-
-### `npm` wird nicht erkannt
-
-- Node.js und npm neu installieren.
-- Danach ein neues Terminal öffnen.
-- Mit `node --version` und `npm --version` prüfen.
-
-### Port 3001 oder 5173 ist bereits belegt
-
-- Das ältere Programm beziehungsweise Terminal beenden.
-- Danach `npm start` erneut ausführen.
-
-Für einen anderen Socket-Port können temporär beide Variablen gesetzt werden:
+## Produktionsversion lokal starten
 
 ```powershell
-$env:SOCKET_PORT="3002"
-$env:VITE_SOCKET_PORT="3002"
+npm run build
 npm start
 ```
 
-### Verbindung zum Server fehlgeschlagen
+Die App läuft dann auf `http://localhost:3000`. Port und Host können mit `PORT` und `HOST` geändert werden.
 
-- Prüfen, ob `npm start` beide Prozesse startet.
-- Prüfen, ob in der Konsole `Game Server läuft auf http://0.0.0.0:3001` erscheint.
-- Die Seite über die LAN-IP aufrufen, nicht über `localhost`, wenn ein anderes Gerät verwendet wird.
-- Die Windows-Firewall für Node.js für private Netzwerke erlauben.
+## Spiel über mehrere Geräte
 
-### Socket-Verbindung funktioniert lokal, aber nicht im Netzwerk
+1. Der Host öffnet `/online`.
+2. Der Host erstellt einen Room und verteilt den sechsstelligen Room-Code.
+3. Die anderen Geräte öffnen dieselbe Adresse und treten über „Beitreten“ bei.
+4. Der Host wählt Runden und Kategorien und startet das Spiel.
 
-Der Socket.IO-Server lauscht standardmäßig auf allen Netzwerkschnittstellen (`0.0.0.0`). Der Client nutzt automatisch den Hostnamen der geöffneten Seite.
+## Datenbank
 
-Bei getrennten Frontend-/Backend-Adressen kann eine oder mehrere Origins gesetzt werden:
+Die Fragen liegen in der SQLite-Datei `data/Fragen.db`.
 
-```powershell
-$env:CLIENT_ORIGIN="http://192.168.1.42:5173"
-npm run server:dev
-```
+| Variable | Bedeutung | Standard |
+|---|---|---|
+| `DATABASE_PATH` | Pfad der Datenbank-Datei | `data/Fragen.db` |
+| `DATABASE_SEED_PATH` | Wenn `DATABASE_PATH` noch nicht existiert, wird diese Datei als Startbestand kopiert | – |
 
-Mehrere erlaubte Origins können komma-getrennt angegeben werden.
+## Deployment (IT25A App Deploy)
+
+Jeder Push auf `main` wird automatisch unter `https://werwuerde.apps.it25a.de` veröffentlicht, jeder Pull Request bekommt eine Preview unter `https://werwuerde-pr<nummer>.apps.it25a.de`.
+
+| Datei | Zweck |
+|---|---|
+| `Dockerfile` | Baut die App und startet `node server/src/prod.ts` auf Port 3000 |
+| `.dockerignore` | Hält unnötige Dateien aus dem Image (nur `data/Fragen.db` kommt als Startbestand mit) |
+| `app.it25a.yml` | Port, Adresse, `ORIGIN`, Datenbank-Pfad und das Volume `app-data` unter `/data` |
+| `.github/workflows/deploy.yml` | Workflow von `IT25A/deploy-workflows`, nicht verändern |
+
+Auf dem Server liegt die Datenbank im Volume (`/data/Fragen.db`) und übersteht Updates. Beim allerersten Start (und in jeder Preview) wird `data/Fragen.db` aus dem Repository als Startbestand kopiert. Spätere Änderungen an `data/Fragen.db` im Repository wirken sich deshalb **nicht** auf die Live-Datenbank aus; dort werden Fragen über `/cms` gepflegt.
+
+Anleitung: https://github.com/IT25A/deploy-workflows/blob/main/docs/getting-started.md
 
 ## Prüfen und Bauen
 
@@ -101,5 +74,3 @@ npm run check
 npm run server:check
 npm run build
 ```
-
-Mit `npm run dev:all` werden Client und Server gemeinsam gestartet. `npm start` ist dafür ein kürzerer Alias.

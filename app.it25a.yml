@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/IT25A/deploy-workflows/main/schema/it25a.schema.json
+# "Wer würde eher?": eine App mit SQLite-Datenbank, die Updates übersteht
+version: 1
+services:
+  app:
+    build: .
+    port: 3000
+    route: { host: "@" }
+    volumes: ["app-data:/data"]
+    environment:
+      ORIGIN: "{{ url.app }}"
+      DATABASE_PATH: /data/Fragen.db

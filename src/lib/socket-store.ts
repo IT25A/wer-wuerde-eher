@@ -19,14 +19,8 @@ function connect() {
         return;
     }
 
-    const protocol = window.location.protocol;
-    const hostname = window.location.hostname;
-    const socketPort = import.meta.env.VITE_SOCKET_PORT ?? '3001';
-    const socketUrl = `${protocol === 'https:' ? 'https' : 'http'}://${hostname}:${socketPort}`;
-
-    console.log('Verbinde zu Socket.IO Server:', socketUrl);
-
-    const newSocket = io(socketUrl, {
+    // Der Game-Server läuft auf derselben Adresse wie die Webseite (same-origin).
+    const newSocket = io({
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000
@@ -130,7 +124,7 @@ function disconnect() {
 function createRoom(playerName: string) {
     const currentSocket = get(socket);
     if (!currentSocket?.connected) {
-        errorMessage.set('❌ Nicht mit Server verbunden. Bitte stelle sicher, dass der Server läuft (npm run server:dev)');
+        errorMessage.set('❌ Nicht mit Server verbunden. Bitte lade die Seite neu.');
         console.error('❌ Nicht verbunden - Room kann nicht erstellt werden');
         return;
     }
@@ -141,7 +135,7 @@ function createRoom(playerName: string) {
 function joinRoom(roomCode: string, playerName: string) {
     const currentSocket = get(socket);
     if (!currentSocket?.connected) {
-        errorMessage.set('❌ Nicht mit Server verbunden. Bitte stelle sicher, dass der Server läuft (npm run server:dev)');
+        errorMessage.set('❌ Nicht mit Server verbunden. Bitte lade die Seite neu.');
         console.error('❌ Nicht verbunden - Room kann nicht beigetreten werden');
         return;
     }
