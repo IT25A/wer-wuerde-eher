@@ -21,10 +21,10 @@
 <section class="online-panel setup">
 	<h1 class="online-title">Wer würde eher?</h1>
 	<p class="subtitle">
-		Jeder spielt am eigenen Gerät. Erstellt einen Room oder tretet mit dem Code eines Freundes bei.
+		Jeder spielt am eigenen Gerät. Erstellt einen Raum oder tretet mit dem Code eines Freundes bei.
 	</p>
 
-	<div class="tabs" role="tablist" aria-label="Room erstellen oder beitreten">
+	<div class="tabs" role="tablist" aria-label="Raum erstellen oder beitreten">
 		<button
 			type="button"
 			role="tab"
@@ -32,7 +32,7 @@
 			class={[mode === 'create' && 'active']}
 			onclick={() => (mode = 'create')}
 		>
-			Room erstellen
+			Raum erstellen
 		</button>
 		<button
 			type="button"
@@ -48,7 +48,7 @@
 	<form class="setup-form" onsubmit={submit}>
 		{#if mode === 'join'}
 			<label class="field">
-				<span>Room-Code</span>
+				<span>Raum-Code</span>
 				<input
 					class="online-input code-input"
 					placeholder="ABC123"
@@ -78,7 +78,7 @@
 		</p>
 
 		<button class="online-primary" type="submit" disabled={!canSubmit}>
-			{mode === 'create' ? 'Room erstellen' : 'Room beitreten'}
+			{mode === 'create' ? 'Raum erstellen' : 'Raum beitreten'}
 		</button>
 	</form>
 

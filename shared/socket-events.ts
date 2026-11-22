@@ -22,6 +22,9 @@ export interface ClientToServerEvents {
         playerId: string;
     }) => void;
 
+    // Nur der Host: nach dem Endergebnis zurück in die Lobby (Raum bleibt offen)
+    'room:back-to-lobby': () => void;
+
     // Chat
     'chat:send': (data: {
         message: string;

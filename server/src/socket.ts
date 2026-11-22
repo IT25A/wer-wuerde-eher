@@ -13,6 +13,8 @@ import {
 } from './room-store.ts';
 import {
     initGame,
+    getGameState,
+    deleteGame,
     processVote,
     nextRound,
     abortVoting,
@@ -37,7 +39,7 @@ type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents> & {
 
 export function registerSocketHandlers(io: GameServer): void {
 
-    // Entfernt einen Spieler aus Room und Spiel und informiert die übrigen Spieler.
+    // Entfernt einen Spieler aus Raum und Spiel und informiert die übrigen Spieler.
     // Gilt für Verlassen, Kick und Verbindungsabbruch, in der Lobby wie im laufenden Spiel.
     function exitRoom(roomCode: string, playerId: string): void {
         const room = removePlayerFromRoom(roomCode, playerId);
@@ -61,12 +63,12 @@ export function registerSocketHandlers(io: GameServer): void {
             message: 'Verbindung zum Game Server erfolgreich!'
         });
 
-        // Room erstellen
+        // Raum erstellen
         socket.on('room:create', (data) => {
-            console.log(`Room erstellen angefordert von: ${socket.id}`);
+            console.log(`Raum erstellen angefordert von: ${socket.id}`);
 
             if (typedSocket.data.roomCode) {
-                socket.emit('room:error', { message: 'Du bist bereits in einem Room' });
+                socket.emit('room:error', { message: 'Du bist bereits in einem Raum' });
                 return;
             }
 
@@ -87,19 +89,19 @@ export function registerSocketHandlers(io: GameServer): void {
             socket.emit('room:created', { room });
         });
 
-        // Room beitreten
+        // Raum beitreten
         socket.on('room:join', (data) => {
-            // Room-Codes bestehen nur aus Großbuchstaben und Ziffern
+            // Raum-Codes bestehen nur aus Großbuchstaben und Ziffern
             const roomCode = String(data?.roomCode ?? '').trim().toUpperCase();
-            console.log(`Room beitreten angefordert: ${roomCode} von ${socket.id}`);
+            console.log(`Raum beitreten angefordert: ${roomCode} von ${socket.id}`);
 
             if (typedSocket.data.roomCode) {
-                socket.emit('room:error', { message: 'Du bist bereits in einem Room' });
+                socket.emit('room:error', { message: 'Du bist bereits in einem Raum' });
                 return;
             }
 
             if (getRoom(roomCode)?.status === 'playing') {
-                socket.emit('room:error', { message: 'In diesem Room läuft bereits ein Spiel' });
+                socket.emit('room:error', { message: 'In diesem Raum läuft bereits ein Spiel' });
                 return;
             }
 
@@ -109,11 +111,11 @@ export function registerSocketHandlers(io: GameServer): void {
                 const existingRoom = getRoom(roomCode);
                 if (!existingRoom) {
                     socket.emit('room:error', {
-                        message: 'Room nicht gefunden oder ungültiger Code'
+                        message: 'Raum nicht gefunden oder ungültiger Code'
                     });
                 } else {
                     socket.emit('room:error', {
-                        message: 'Room ist voll oder ungültiger Spielername'
+                        message: 'Raum ist voll oder ungültiger Spielername'
                     });
                 }
                 return;
@@ -129,12 +131,12 @@ export function registerSocketHandlers(io: GameServer): void {
             socket.to(room.code).emit('room:updated', { room });
         });
 
-        // Room verlassen
+        // Raum verlassen
         socket.on('room:leave', () => {
             const roomCode = typedSocket.data.roomCode;
 
             if (!roomCode) {
-                console.log(`Spieler ${socket.id} will Room verlassen, ist aber in keinem Room`);
+                console.log(`Spieler ${socket.id} will Raum verlassen, ist aber in keinem Raum`);
                 return;
             }
 
@@ -151,7 +153,7 @@ export function registerSocketHandlers(io: GameServer): void {
             const room = roomCode ? getRoom(roomCode) : undefined;
 
             if (!roomCode || !room) {
-                socket.emit('room:error', { message: 'Du bist in keinem Room' });
+                socket.emit('room:error', { message: 'Du bist in keinem Raum' });
                 return;
             }
 
@@ -182,13 +184,39 @@ export function registerSocketHandlers(io: GameServer): void {
             exitRoom(roomCode, targetId);
         });
 
+        // Nach dem Endergebnis zurück in die Lobby (nur Host): Spieler und Chat bleiben, neues Spiel möglich
+        socket.on('room:back-to-lobby', () => {
+            const roomCode = typedSocket.data.roomCode;
+            const room = roomCode ? getRoom(roomCode) : undefined;
+
+            if (!roomCode || !room) {
+                socket.emit('room:error', { message: 'Du bist in keinem Raum' });
+                return;
+            }
+
+            if (room.hostId !== socket.id) {
+                socket.emit('room:error', { message: 'Nur der Host kann ein neues Spiel vorbereiten' });
+                return;
+            }
+
+            const gameState = getGameState(roomCode);
+            if (gameState && gameState.phase !== 'final') {
+                socket.emit('room:error', { message: 'Das Spiel läuft noch' });
+                return;
+            }
+
+            deleteGame(roomCode);
+            room.status = 'waiting';
+            io.to(roomCode).emit('room:updated', { room });
+        });
+
         // Chat Nachricht senden
         socket.on('chat:send', (data) => {
             const roomCode = typedSocket.data.roomCode;
             const playerName = typedSocket.data.playerName;
 
             if (!roomCode) {
-                console.log(`Spieler ${socket.id} versucht zu chatten, ist aber in keinem Room`);
+                console.log(`Spieler ${socket.id} versucht zu chatten, ist aber in keinem Raum`);
                 return;
             }
 
@@ -229,12 +257,12 @@ export function registerSocketHandlers(io: GameServer): void {
         socket.on('game:start', (data) => {
             const roomCode = typedSocket.data.roomCode;
             if (!roomCode) {
-                socket.emit('game:error', { message: 'Du bist in keinem Room' });
+                socket.emit('game:error', { message: 'Du bist in keinem Raum' });
                 return;
             }
             const room = getRoom(roomCode);
             if (!room) {
-                socket.emit('game:error', { message: 'Room existiert nicht' });
+                socket.emit('game:error', { message: 'Raum existiert nicht' });
                 return;
             }
             if (room.hostId !== socket.id) {
@@ -265,7 +293,7 @@ export function registerSocketHandlers(io: GameServer): void {
         socket.on('game:vote', (data) => {
             const roomCode = typedSocket.data.roomCode;
             if (!roomCode) {
-                socket.emit('game:error', { message: 'Du bist in keinem Room' });
+                socket.emit('game:error', { message: 'Du bist in keinem Raum' });
                 return;
             }
             const gameState = processVote(roomCode, socket.id, data.targetPlayerId);
@@ -279,12 +307,12 @@ export function registerSocketHandlers(io: GameServer): void {
         socket.on('game:next-round', () => {
             const roomCode = typedSocket.data.roomCode;
             if (!roomCode) {
-                socket.emit('game:error', { message: 'Du bist in keinem Room' });
+                socket.emit('game:error', { message: 'Du bist in keinem Raum' });
                 return;
             }
             const room = getRoom(roomCode);
             if (!room) {
-                socket.emit('game:error', { message: 'Room existiert nicht' });
+                socket.emit('game:error', { message: 'Raum existiert nicht' });
                 return;
             }
             if (room.hostId !== socket.id) {
@@ -302,12 +330,12 @@ export function registerSocketHandlers(io: GameServer): void {
         socket.on('game:abort-voting', () => {
             const roomCode = typedSocket.data.roomCode;
             if (!roomCode) {
-                socket.emit('game:error', { message: 'Du bist in keinem Room' });
+                socket.emit('game:error', { message: 'Du bist in keinem Raum' });
                 return;
             }
             const room = getRoom(roomCode);
             if (!room) {
-                socket.emit('game:error', { message: 'Room existiert nicht' });
+                socket.emit('game:error', { message: 'Raum existiert nicht' });
                 return;
             }
             if (room.hostId !== socket.id) {

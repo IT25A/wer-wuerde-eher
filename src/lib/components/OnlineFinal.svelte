@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { gameStateStore, playerIdStore, socketStore } from '$lib/socket-store';
+	import { currentRoomStore, gameStateStore, playerIdStore, socketStore } from '$lib/socket-store';
 	import OnlineChip from '$lib/components/OnlineChip.svelte';
+
+	const isHost = $derived($currentRoomStore?.hostId === $playerIdStore);
 
 	const ranking = $derived(
 		$gameStateStore?.players.toSorted(
@@ -39,9 +41,20 @@
 		{/each}
 	</ol>
 
-	<button type="button" class="online-primary" onclick={() => socketStore.leaveRoom()}>
-		Zurück zum Online-Menü
-	</button>
+	<div class="final-actions">
+		{#if isHost}
+			<!-- Der Raum bleibt offen: alle landen wieder auf der Raum-Code-Seite. -->
+			<button type="button" class="online-primary" onclick={() => socketStore.backToLobby()}>
+				Neues Spiel im selben Raum
+			</button>
+		{/if}
+		<button type="button" class="online-secondary" onclick={() => socketStore.leaveRoom()}>
+			Raum verlassen
+		</button>
+	</div>
+	{#if !isHost}
+		<p class="subtitle">Der Raum bleibt offen. Der Host kann gleich ein neues Spiel starten.</p>
+	{/if}
 </section>
 
 <style>
@@ -103,6 +116,13 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		font-size: 1.75rem;
+	}
+
+	.final-actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.75rem;
 	}
 
 	.stats {

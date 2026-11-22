@@ -1,3 +1,8 @@
+<script lang="ts" module>
+	// Merkt sich die letzten Einstellungen, damit ein weiteres Spiel im selben Raum schnell startet.
+	let lastSettings = { categoryIds: [1, 2], totalRounds: 10 };
+</script>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { currentRoomStore, playerIdStore, socketStore } from '$lib/socket-store';
@@ -7,8 +12,8 @@
 	type Category = { id: number; name: string; description: string | null; questionCount: number };
 	let categories = $state.raw<Category[]>([]);
 	let categoriesError = $state('');
-	let selectedCategoryIds = $state<number[]>([1, 2]);
-	let totalRounds = $state(10);
+	let selectedCategoryIds = $state<number[]>([...lastSettings.categoryIds]);
+	let totalRounds = $state(lastSettings.totalRounds);
 	let copied = $state(false);
 
 	const room = $derived($currentRoomStore);
@@ -47,13 +52,15 @@
 	function start() {
 		// Falls weniger Fragen verfügbar sind als gewählt, die größte mögliche Rundenzahl nehmen.
 		const rounds = roundOptions.includes(totalRounds) ? totalRounds : roundOptions.at(-1);
-		if (rounds) socketStore.startGame(rounds, selectedCategoryIds);
+		if (!rounds) return;
+		lastSettings = { categoryIds: [...selectedCategoryIds], totalRounds: rounds };
+		socketStore.startGame(rounds, selectedCategoryIds);
 	}
 </script>
 
 {#if room}
 	<section class="online-panel lobby">
-		<p>Room-Code</p>
+		<p>Raum-Code</p>
 		<h1 class="room-code">{room.code}</h1>
 		<p class="subtitle">Teilt den Code, damit eure Freunde beitreten können.</p>
 		<button type="button" class="online-secondary copy" onclick={copyCode}>
