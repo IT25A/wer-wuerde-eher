@@ -1,42 +1,34 @@
-# sv
+# Wer würde eher?
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Dieses Software Projekt setzt das altbekannte Partyspiel _"Wer würde eher"_ als Website um.
+Es gibt 3 Spielmodi:
 
-## Creating a project
+- Hotseat: Mehrere Leute spielen an einem Gerät
+- Online: Spieler können einem Raum per Code beitreten und parallel für einander stimmen
+- Nur Fragen: Es werden einem nur Fragen angezeit, eine alternative zum Hotseat, sollte man lieber analog Abstimmen wollen
 
-If you're seeing this, you've probably already done this step. Congrats!
+Darüber hinaus gibt es ein einfaches _Content Management System_, welches einem erlaubt, die Datenbank einfach zu aktualisieren. Dieses erreicht man unter /cms
+
+# Technologien und Voraussetzungen
+
+## Tech Stack
+
+- Framework: SvelteKit
+- Datenbank: SQLite
+
+## Benötigte Software:
+
+- NodeJS + node package manager (npm)
+- [C++ Build Tools](https://learn.microsoft.com/de-de/cpp/build/vscpp-step-0-installation?view=msvc-170) (für betterSqlite 3)
+
+# Quickstart
+
+Nachdem die benötigte Software installiert wurde, kann das Projekt folgendermaßen gestartet werden:
 
 ```sh
-# create a new project
-npx sv create my-app
-```
+# Zum installieren der Pakete:
+npm install
 
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-npx sv@0.17.1 create --template minimal --types ts --add prettier eslint ai-tools="ide:vscode,claude-code+delivery:plugin+tools:mcp,svelte-code-writer,svelte-core-bestpractices,svelte-file-editor+mcpSetup:remote" --install npm ./
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
+#Zum starten des Entwicklungsservers:
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
