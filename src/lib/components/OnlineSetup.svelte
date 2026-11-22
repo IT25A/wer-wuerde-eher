@@ -21,26 +21,18 @@
     });
 </script>
 
-<div class="text-center">
-    <h1
-        class="bg-linear-to-r from-violet-300 via-blue-300 to-cyan-300 bg-clip-text text-5xl font-extrabold text-transparent"
-    >
-        Wer würde eher? (Online)
-    </h1>
-    <p class="muted mt-3">
-        Spielt mit Freunden im selben Netzwerk via WebSockets.
-    </p>
-</div>
+<header class="online-header">
+    <p class="online-kicker">Multiplayer</p>
+    <h1 class="online-title">Wer würde eher?</h1>
+    <p class="online-subtitle">Gemeinsam abstimmen. Laut diskutieren. Punkte sammeln.</p>
+</header>
 
 {#if errorMessage}
-    <div class="mt-4 p-4 bg-rose-500/20 border border-rose-500/50 rounded-xl">
-        <p class="text-rose-300 font-semibold">{errorMessage}</p>
-    </div>
+    <div class="online-error" role="alert">{errorMessage}</div>
 {/if}
 
-<div class="mt-8 flex gap-4">
+<div class="online-tabs">
     <button
-        class="online-btn flex-1"
         class:active={isCreating}
         onclick={() => (isCreating = true)}
     >
@@ -56,10 +48,11 @@
 </div>
 
 {#if isCreating}
-    <section class="card mt-6 p-5">
-        <h2 class="text-xl font-bold mb-4">Neuen Room erstellen</h2>
+    <section class="online-panel setup-panel">
+        <p class="online-kicker">Neuer Room</p>
+        <h2>Als Host starten</h2>
         <form
-            class="flex gap-2"
+            class="online-form"
             onsubmit={(e) => {
                 e.preventDefault();
                 console.log('✏️ Button geklickt, playerName:', playerName);
@@ -67,53 +60,58 @@
             }}
         >
             <input
-                class="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/25 px-4 py-3 text-lg text-white placeholder:text-indigo-300/50 focus:border-cyan-300 focus:outline-none"
+                class="online-input"
                 placeholder="Dein Name"
                 maxlength="20"
                 bind:value={playerName}
             />
-            <button class="btn" type="submit">Erstellen</button>
+            <button class="online-primary" type="submit">Room erstellen</button>
         </form>
     </section>
 {:else}
-    <section class="card mt-6 p-5">
-        <h2 class="text-xl font-bold mb-4">Room beitreten</h2>
+    <section class="online-panel setup-panel">
+        <p class="online-kicker">Bestehender Room</p>
+        <h2>Freunde beitreten</h2>
         <form
-            class="flex flex-col gap-3"
+            class="online-form"
             onsubmit={(e) => {
                 e.preventDefault();
                 socketStore.joinRoom(roomCode, playerName);
             }}
         >
             <input
-                class="w-full rounded-xl border border-white/15 bg-black/25 px-4 py-3 text-lg text-white placeholder:text-indigo-300/50 focus:border-cyan-300 focus:outline-none uppercase"
+                class="online-input room-code-input"
                 placeholder="Room-Code (z.B. ABC123)"
                 maxlength="6"
                 bind:value={roomCode}
             />
             <input
-                class="w-full rounded-xl border border-white/15 bg-black/25 px-4 py-3 text-lg text-white placeholder:text-indigo-300/50 focus:border-cyan-300 focus:outline-none"
+                class="online-input"
                 placeholder="Dein Name"
                 maxlength="20"
                 bind:value={playerName}
             />
-            <button class="btn" type="submit">Beitreten</button>
+            <button class="online-primary" type="submit">Room beitreten</button>
         </form>
     </section>
 {/if}
 
 {#if currentRoom}
-    <section class="card mt-6 p-5">
-        <h2 class="text-xl font-bold mb-4">Room: {currentRoom.code}</h2>
-        <p class="muted mb-2">Spieler im Room:</p>
-        <ul class="flex flex-wrap gap-2">
+    <section class="online-panel room-panel">
+        <div class="room-heading">
+            <div>
+                <p class="online-kicker">Room-Code</p>
+                <strong class="room-code">{currentRoom.code}</strong>
+            </div>
+            <span class="player-count">{currentRoom.players.length} Spieler</span>
+        </div>
+        <p class="online-kicker player-label">Spieler im Room</p>
+        <ul class="player-list">
             {#each currentRoom.players as player (player.id)}
-                <li
-                    class="flex items-center gap-2 rounded-full bg-linear-to-r from-violet-500/30 to-cyan-400/30 py-1.5 pr-2 pl-4 ring-1 ring-white/15"
-                >
-                    <span class="font-semibold">{player.name}</span>
+                <li>
+                    <span>{player.name}</span>
                     {#if player.isHost}
-                        <span class="text-xs bg-cyan-500/30 px-2 py-0.5 rounded-full">Host</span>
+                        <small>Host</small>
                     {/if}
                 </li>
             {/each}
@@ -149,7 +147,7 @@
 
         {#if currentRoom.hostId === socketRef.get()?.id && currentRoom.players.length >= MIN_PLAYERS}
             <button
-                class="btn btn-primary mt-4 w-full"
+                class="online-primary room-action"
                 disabled={selectedCategories.length === 0}
                 onclick={() => {
                     socketRef.get()?.emit('game:start', {
@@ -161,34 +159,35 @@
                 Spiel starten
             </button>
         {:else if currentRoom.hostId !== socketRef.get()?.id}
-            <p class="muted mt-4 text-sm">Warte auf den Host...</p>
+            <p class="waiting">Warte auf den Host...</p>
         {:else}
-            <p class="muted mt-4 text-sm">Mindestens {MIN_PLAYERS} Spieler benötigt</p>
+            <p class="waiting">Mindestens {MIN_PLAYERS} Spieler benötigt</p>
         {/if}
 
-        <button class="btn mt-4 w-full" onclick={() => socketStore.leaveRoom()}>
+        <button class="online-secondary room-action" onclick={() => socketStore.leaveRoom()}>
             Room verlassen
         </button>
     </section>
 {/if}
 
 <style>
-    .online-btn {
-        background: linear-gradient(30deg, hsl(140, 100%, 35%), hsl(120, 100%, 35%));
-        color: white;
-        font-size: 1.2rem;
-        cursor: pointer;
-        transition: all 0.1s ease-out;
-        border: 2px solid hsla(0, 0%, 100%, 0.7);
-        text-shadow: 0 0 10px hsla(0, 0%, 100%, 0.3);
-    }
-
-    .online-btn:hover {
-        background-color: hsl(22, 100%, 50%);
-        transform: scale(1.02);
-    }
-
-    .online-btn:active {
-        transform: scale(0.98);
-    }
+    .online-header { text-align: center; margin-bottom: 1.5rem; }
+    .online-subtitle { margin-top: 0.75rem; color: hsla(0, 0%, 100%, 0.72); }
+    .online-error { margin: 0 0 1rem; border: 2px solid hsl(0, 70%, 55%); border-radius: 0.75rem; padding: 0.75rem 1rem; background: hsla(0, 70%, 35%, 0.22); }
+    .online-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-bottom: 0.75rem; }
+    .online-tabs button { min-height: 3.25rem; border: 2px solid hsla(0, 0%, 100%, 0.45); border-radius: 0.75rem; background: hsla(220, 30%, 16%, 0.78); }
+    .online-tabs button.active { border-color: var(--color20); background: linear-gradient(30deg, hsla(200, 100%, 38%, 0.9), hsla(230, 75%, 48%, 0.9)); }
+    .setup-panel, .room-panel { padding: 1.25rem; margin-top: 0.75rem; }
+    .setup-panel h2 { margin: 0.25rem 0 1rem; font-size: 2.25rem; }
+    .online-form { display: grid; gap: 0.75rem; }
+    .room-code-input { text-transform: uppercase; letter-spacing: 0.22em; font-size: 1.25rem; text-align: center; }
+    .room-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; }
+    .room-code { display: block; color: var(--color20light); font-size: 2.25rem; letter-spacing: 0.22em; }
+    .player-count { border: 1px solid hsla(0, 0%, 100%, 0.35); border-radius: 999px; padding: 0.35rem 0.75rem; }
+    .player-label { margin-top: 1.25rem; }
+    .player-list { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; padding: 0; margin: 0.6rem 0 1.25rem; }
+    .player-list li { display: flex; align-items: center; gap: 0.6rem; border: 1px solid hsla(0, 0%, 100%, 0.28); border-radius: 999px; background: hsla(200, 100%, 75%, 0.09); padding: 0.45rem 0.75rem 0.45rem 1rem; }
+    .player-list small { border-radius: 999px; background: hsla(128, 76%, 43%, 0.28); padding: 0.15rem 0.45rem; }
+    .room-action { width: 100%; margin-top: 0.75rem; }
+    .waiting { text-align: center; margin-top: 1rem; color: hsla(0, 0%, 100%, 0.72); }
 </style>

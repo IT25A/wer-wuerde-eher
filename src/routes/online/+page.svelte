@@ -24,7 +24,7 @@
     });
 </script>
 
-<main class="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-4 py-8">
+<main class="online-shell">
     {#if !currentRoom || currentRoom.status === 'waiting'}
         <OnlineSetup />
     {:else if gameState?.phase === 'voting'}

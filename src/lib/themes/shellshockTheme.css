@@ -122,6 +122,89 @@ input[type="number"] {
         transform: translateX(0);
     }
 
+    .online-shell {
+        width: min(94vw, 760px);
+        min-height: 100dvh;
+        margin: 0 auto;
+        padding: clamp(1.25rem, 4vw, 3.5rem) 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+    }
+
+    .online-panel {
+        border: 2px solid hsla(0, 0%, 100%, 0.78);
+        border-radius: 1.25rem;
+        background:
+            linear-gradient(145deg, hsla(220, 30%, 18%, 0.92), hsla(220, 85%, 5%, 0.96));
+        box-shadow:
+            0 0 2.5rem hsla(200, 100%, 75%, 0.12),
+            inset 0 1px 0 hsla(0, 0%, 100%, 0.08);
+    }
+
+    .online-kicker {
+        color: var(--color20light);
+        font-size: 1rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+    .online-title {
+        font-size: clamp(2.5rem, 9vw, 5.25rem);
+        line-height: 0.95;
+        text-shadow: 0 0 2.5rem hsla(0, 0%, 100%, 0.42);
+    }
+
+    .online-accent {
+        color: var(--color20);
+        text-shadow: 0 0 1.5rem hsla(200, 100%, 75%, 0.45);
+    }
+
+    .online-input {
+        width: 100%;
+        min-height: 3.25rem;
+        border: 2px solid hsla(0, 0%, 100%, 0.22);
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: hsla(220, 70%, 5%, 0.72);
+        outline: none;
+    }
+
+    .online-input:focus {
+        border-color: var(--color20);
+        box-shadow: 0 0 1.25rem hsla(200, 100%, 75%, 0.18);
+    }
+
+    .online-primary,
+    .online-secondary,
+    .online-choice {
+        min-height: 3.25rem;
+        border: 2px solid hsla(0, 0%, 100%, 0.78);
+        border-radius: 0.75rem;
+        font-size: 1.25rem;
+    }
+
+    .online-primary {
+        background: linear-gradient(30deg, hsl(128, 76%, 43%), hsl(140, 72%, 32%));
+    }
+
+    .online-secondary {
+        background: hsla(220, 30%, 18%, 0.92);
+    }
+
+    .online-choice {
+        width: 100%;
+        background: hsla(220, 30%, 16%, 0.86);
+        text-align: left;
+        padding: 0.75rem 1rem;
+    }
+
+    .online-choice:hover,
+    .online-choice:active {
+        background: linear-gradient(30deg, hsl(200, 100%, 38%), hsl(230, 75%, 48%));
+    }
+
     15% {
         transform: translateX(-0.7rem);
     }
