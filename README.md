@@ -4,7 +4,7 @@ Ein Partyspiel für den Browser: Zu jeder Frage („Wer würde eher im Urlaub de
 
 Das Projekt ist im Modul Software Engineering (HWR Berlin, Semester 3) entstanden.
 
-**Live-Version:** https://wer-wuerde.apps.it25a.de
+**Live-Version:** https://wer-wuerde-eher.apps.it25a.de
 
 > Die App läuft auf der IT25A-Plattform. Solange sie auf „nur Kursmitglieder“ steht, meldet man sich beim ersten Aufruf mit dem Uni-Konto an.
 
