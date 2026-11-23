@@ -4,7 +4,9 @@ Ein Partyspiel für den Browser: Zu jeder Frage („Wer würde eher im Urlaub de
 
 Das Projekt ist im Modul Software Engineering (HWR Berlin, Semester 3) entstanden.
 
-**Live-Version:** https://werwuerde.apps.it25a.de
+**Live-Version:** https://wer-wuerde-eher.apps.it25a.de
+
+**Docker-Build:** docker pull ghcr.io/it25a/wer-wuerde-eher/app:main-71b683e 
 
 > Die App läuft auf der IT25A-Plattform. Solange sie auf „nur Kursmitglieder“ steht, meldet man sich beim ersten Aufruf mit dem Uni-Konto an.
 
@@ -151,13 +153,13 @@ Mit Docker läuft die App genau so wie später auf dem Server, ohne dass Node.js
 3. Image bauen (einmalig bzw. nach Code-Änderungen, dauert ein paar Minuten):
 
    ```bash
-   docker build -t werwuerde .
+   docker pull ghcr.io/it25a/wer-wuerde-eher/app:main-71b683e 
    ```
 
 4. App starten:
 
    ```bash
-   docker run --rm -p 3000:3000 -v werwuerde-daten:/data werwuerde
+   docker run -d --name wer-wuerde-eher -p 3000:3000 ghcr.io/it25a/wer-wuerde-eher/app:main-71b683e
    ```
 
 5. Im Browser **http://localhost:3000** öffnen. Beenden mit `Strg + C`.
@@ -170,12 +172,12 @@ Mit Docker läuft die App genau so wie später auf dem Server, ohne dass Node.js
 
 Die App wird über die **IT25A App Deploy**-Plattform der Hochschule veröffentlicht:
 
-**https://werwuerde.apps.it25a.de**
+**https://wer-wuerde-eher.apps.it25a.de**
 
 So funktioniert es:
 
 ```
-Änderung auf main  ──►  GitHub baut ein Docker-Image  ──►  die Plattform startet es  ──►  werwuerde.apps.it25a.de
+Änderung auf main  ──►  GitHub baut ein Docker-Image  ──►  die Plattform startet es  ──►  https://wer-wuerde-eher.apps.it25a.de
 ```
 
 - Jede Änderung auf dem Branch `main` wird automatisch veröffentlicht.
@@ -230,22 +232,4 @@ npm run server:check  # Typprüfung des Game-Servers
 npm run build         # Produktions-Build
 ```
 
----
 
-## Häufige Probleme
-
-**`npm` oder `node` wird nicht erkannt**
-Node.js ist nicht installiert oder das Terminal wurde vor der Installation geöffnet. Node.js installieren und ein **neues** Terminal öffnen.
-
-**`Port 3000 is already in use` / Adresse wird bereits verwendet**
-Eine andere Anwendung nutzt Port 3000. Das andere Programm beenden oder einen anderen Port wählen:
-macOS/Linux: `PORT=3001 npm start`, Windows PowerShell: `$env:PORT=3001; npm start`. Danach http://localhost:3001 öffnen.
-
-**Andere Geräte im WLAN können nicht beitreten**
-Alle Geräte müssen im selben WLAN sein (kein Gast-WLAN) und die IP-Adresse des Computers verwenden, nicht `localhost`. Unter Windows ggf. in der Firewall Node.js für private Netzwerke erlauben.
-
-**„Nicht mit Server verbunden“ im Online-Modus**
-Seite neu laden. Bleibt die Meldung, läuft der Server nicht. Im Terminal prüfen, ob `npm start` noch läuft.
-
-**`docker` wird nicht erkannt oder „Cannot connect to the Docker daemon“**
-Docker Desktop ist nicht installiert oder nicht gestartet. Docker Desktop öffnen und warten, bis es läuft.
